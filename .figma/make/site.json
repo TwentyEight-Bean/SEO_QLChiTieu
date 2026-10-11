@@ -1,0 +1,10 @@
+{
+  "description": "Showcases a Vietnamese personal expense management app through a premium cinematic website, enhancing user engagement and driving app installations.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
