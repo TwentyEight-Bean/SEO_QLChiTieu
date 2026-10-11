@@ -2,6 +2,12 @@ import { useMemo, useState } from "react";
 import Phone, { type PhoneScreen } from "./Phone";
 import { APP, CATEGORIES, FEATURES, STORES } from "./config";
 import { Link } from "./router";
+import DeviceMockup from "./components/DeviceMockup";
+import StatisticsShowcase from "./components/StatisticsShowcase";
+import AnalyticsPerspectiveStage from "./components/AnalyticsPerspectiveStage";
+import TransactionFlowShowcase from "./components/TransactionFlowShowcase";
+import BudgetShowcase from "./components/BudgetShowcase";
+import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
 
 type FeatureId = (typeof FEATURES)[number]["id"];
 const HAS_STORE_LINKS = Boolean(STORES.appStore || STORES.googlePlay);
@@ -592,92 +598,170 @@ function FaqSection({ items }: { items: FaqItem[] }) {
 
 /* ---------- Product page ---------- */
 
-function ProductPage({ page }: { page: ProductPageDef }) {
-  const related = page.related.map((path) => ALL_PAGES.find((item) => item.path === path)).filter(Boolean) as RouteDef[];
-  const feature = page.featureId ? featureById[page.featureId] : featureById[page.screen === "thong-ke" ? "thong-ke" : page.screen === "ngan-sach" ? "ngan-sach" : "thu-chi"];
+/* ---------- Product Pages: Specialized 2.5D Visual Implementations ---------- */
 
+function ProductHero({ page, screen, perspective }: { page: ProductPageDef; screen: PhoneScreen; perspective: "hero" | "perspective-left" | "perspective-right" }) {
+  const feature = page.featureId ? featureById[page.featureId] : featureById[screen === "thong-ke" ? "thong-ke" : screen === "ngan-sach" ? "ngan-sach" : "thu-chi"];
+
+  return (
+    <header className="product-page-hero relative isolate overflow-hidden bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_75%_35%,#2a211c_0%,#0c0a09_62%)]" />
+      <div className="absolute right-[-18vw] top-20 -z-10 size-[min(90vw,680px)] rounded-full border border-paper/10" aria-hidden>
+        <span className="absolute inset-[18%] rounded-full border border-vermilion/25" />
+        <span className="absolute inset-[36%] rounded-full bg-vermilion/80 blur-[1px]" />
+      </div>
+      <div className="mx-auto grid max-w-[1300px] items-center gap-14 lg:grid-cols-[1.1fr_auto]">
+        <div>
+          <nav aria-label="Đường dẫn" className="breadcrumb">
+            <Link href="/">Trang chủ</Link>
+            <span aria-hidden />
+            <span>{page.nav}</span>
+          </nav>
+          <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{page.eyebrow}</p>
+          <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.7rem,7vw,6.4rem)] font-light leading-[1.02]">{page.h1}</h1>
+          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/70">{page.intro}</p>
+          <div className="mt-9 flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-paper/65">
+            {page.metrics.map((metric) => <span key={metric} className="rounded-full border border-paper/20 px-4 py-2">{metric}</span>)}
+          </div>
+        </div>
+        <figure className="product-hero-phone justify-self-center">
+          <DeviceMockup
+            screen={screen}
+            src={feature.shot}
+            alt={`${page.nav} trong ${APP.name}`}
+            perspective={perspective}
+            w="clamp(220px, 25vw, 320px)"
+          />
+          <figcaption className="mt-5 text-center text-xs text-paper/45">Màn hình minh họa trong giai đoạn chuẩn bị phát hành.</figcaption>
+        </figure>
+      </div>
+    </header>
+  );
+}
+
+function ProductContentBody({ page }: { page: ProductPageDef }) {
+  const related = page.related.map((path) => ALL_PAGES.find((item) => item.path === path)).filter(Boolean) as RouteDef[];
   const tocItems = [
+    { href: "#mo-phong", label: "00 Trực quan" },
     ...page.sections.map((s, i) => ({ href: `#muc-${i + 1}`, label: `0${i + 1} ${s.h}` })),
     { href: "#loi-ich", label: "Lợi ích" },
     ...(page.faq && page.faq.length > 0 ? [{ href: "#faq", label: "Câu hỏi thường gặp" }] : []),
   ];
 
   return (
-    <main className="min-h-svh bg-paper text-ink">
-      <header className="product-page-hero relative isolate overflow-hidden bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
-        <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_75%_35%,#2a211c_0%,#0c0a09_62%)]" />
-        <div className="absolute right-[-18vw] top-20 -z-10 size-[min(90vw,680px)] rounded-full border border-paper/10" aria-hidden>
-          <span className="absolute inset-[18%] rounded-full border border-vermilion/25" />
-          <span className="absolute inset-[36%] rounded-full bg-vermilion/80 blur-[1px]" />
-        </div>
-        <div className="mx-auto grid max-w-[1300px] items-end gap-14 md:grid-cols-[1fr_auto]">
-          <div>
-            <nav aria-label="Đường dẫn" className="breadcrumb">
-              <Link href="/">Trang chủ</Link>
-              <span aria-hidden />
-              <span>{page.nav}</span>
-            </nav>
-            <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{page.eyebrow}</p>
-            <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.7rem,7vw,6.6rem)] font-light leading-[1.02]">{page.h1}</h1>
-            <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/70">{page.intro}</p>
-            <div className="mt-9 flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-paper/65">
-              {page.metrics.map((metric) => <span key={metric} className="rounded-full border border-paper/20 px-4 py-2">{metric}</span>)}
-            </div>
-          </div>
-          <figure className="product-hero-phone justify-self-center">
-            <Phone src={feature.shot} screen={page.screen} alt={`${page.nav} trong ${APP.name}`} w="clamp(210px, 24vw, 320px)" />
-            <figcaption className="mt-5 text-center text-xs text-paper/45">Màn hình minh họa trong giai đoạn chuẩn bị phát hành.</figcaption>
-          </figure>
-        </div>
-      </header>
-
-      <section className="washi px-6 py-20 md:px-10 md:py-28">
-        <div className="mx-auto grid max-w-[1200px] gap-14 lg:grid-cols-[260px_minmax(0,780px)] lg:justify-between">
-          <aside className="secondary-toc">
-            <p>Trong trang</p>
-            <nav aria-label="Mục lục">
-              {tocItems.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
-            </nav>
-          </aside>
-          <article className="secondary-article">
-            {page.sections.map((section, index) => (
-              <section id={`muc-${index + 1}`} key={section.h} className="scroll-mt-28">
-                <span className="section-kicker">0{index + 1}</span>
-                <h2>{section.h}</h2>
-                {section.p.map((text) => <p key={text}>{text}</p>)}
-                {section.list && (
-                  <ul>
-                    {section.list.map((item) => <li key={item}>{item}</li>)}
-                  </ul>
-                )}
-              </section>
-            ))}
-
-            <section id="loi-ich" className="scroll-mt-28">
-              <span className="section-kicker">Lợi ích</span>
-              <h2>Khi dùng đều đặn, dữ liệu trở nên hữu ích hơn</h2>
-              <div className="benefit-grid">
-                {page.benefits.map((benefit, index) => (
-                  <p key={benefit}><span>0{index + 1}</span>{benefit}</p>
-                ))}
-              </div>
+    <section className="washi px-6 py-20 md:px-10 md:py-28">
+      <div className="mx-auto grid max-w-[1200px] gap-14 lg:grid-cols-[260px_minmax(0,780px)] lg:justify-between">
+        <aside className="secondary-toc">
+          <p>Trong trang</p>
+          <nav aria-label="Mục lục">
+            {tocItems.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
+          </nav>
+        </aside>
+        <article className="secondary-article">
+          {page.sections.map((section, index) => (
+            <section id={`muc-${index + 1}`} key={section.h} className="scroll-mt-28">
+              <span className="section-kicker">0{index + 1}</span>
+              <h2>{section.h}</h2>
+              {section.p.map((text) => <p key={text}>{text}</p>)}
+              {section.list && (
+                <ul>
+                  {section.list.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              )}
             </section>
+          ))}
 
-            {page.faq && page.faq.length > 0 && <FaqSection items={page.faq} />}
+          <section id="loi-ich" className="scroll-mt-28">
+            <span className="section-kicker">Lợi ích</span>
+            <h2>Khi dùng đều đặn, dữ liệu trở nên hữu ích hơn</h2>
+            <div className="benefit-grid">
+              {page.benefits.map((benefit, index) => (
+                <p key={benefit}><span>0{index + 1}</span>{benefit}</p>
+              ))}
+            </div>
+          </section>
 
-            <aside className="cta-panel">
-              <p>Áp dụng với {APP.name}</p>
-              <h2>Hiểu rõ tiền của bạn. Bắt đầu từ những khoản nhỏ nhất.</h2>
-              <Link href="/#tai-ung-dung">{PRODUCT_CTA_LABEL} <span aria-hidden>→</span></Link>
-            </aside>
-          </article>
-        </div>
+          {page.faq && page.faq.length > 0 && <FaqSection items={page.faq} />}
 
-        <RelatedLinks title="Liên kết liên quan" items={related} />
-      </section>
+          <aside className="cta-panel">
+            <p>Áp dụng với {APP.name}</p>
+            <h2>Hiểu rõ tiền của bạn. Bắt đầu từ những khoản nhỏ nhất.</h2>
+            <Link href="/#tai-ung-dung">{PRODUCT_CTA_LABEL} <span aria-hidden>→</span></Link>
+          </aside>
+        </article>
+      </div>
+
+      <RelatedLinks title="Liên kết liên quan" items={related} />
+    </section>
+  );
+}
+
+function StatisticsProductPage({ page }: { page: ProductPageDef }) {
+  return (
+    <main className="min-h-svh bg-paper text-ink">
+      <ProductHero page={page} screen="thong-ke" perspective="perspective-right" />
+      <div id="mo-phong" className="scroll-mt-20">
+        <StatisticsShowcase />
+        <AnalyticsPerspectiveStage />
+      </div>
+      <ProductContentBody page={page} />
     </main>
   );
 }
+
+function TransactionProductPage({ page }: { page: ProductPageDef }) {
+  return (
+    <main className="min-h-svh bg-paper text-ink">
+      <ProductHero page={page} screen="thu-chi" perspective="perspective-left" />
+      <div id="mo-phong" className="scroll-mt-20">
+        <TransactionFlowShowcase />
+      </div>
+      <ProductContentBody page={page} />
+    </main>
+  );
+}
+
+function BudgetProductPage({ page }: { page: ProductPageDef }) {
+  return (
+    <main className="min-h-svh bg-paper text-ink">
+      <ProductHero page={page} screen="ngan-sach" perspective="perspective-right" />
+      <div id="mo-phong" className="scroll-mt-20">
+        <BudgetShowcase />
+      </div>
+      <ProductContentBody page={page} />
+    </main>
+  );
+}
+
+function FeaturesProductPage({ page }: { page: ProductPageDef }) {
+  return (
+    <main className="min-h-svh bg-paper text-ink">
+      <ProductHero page={page} screen="thu-chi" perspective="hero" />
+      <div id="mo-phong" className="scroll-mt-20">
+        <FeatureEcosystemShowcase />
+      </div>
+      <ProductContentBody page={page} />
+    </main>
+  );
+}
+
+function GenericProductPage({ page }: { page: ProductPageDef }) {
+  return (
+    <main className="min-h-svh bg-paper text-ink">
+      <ProductHero page={page} screen={page.screen} perspective="hero" />
+      <ProductContentBody page={page} />
+    </main>
+  );
+}
+
+function ProductPage({ page }: { page: ProductPageDef }) {
+  if (page.path === "/thong-ke-tai-chinh") return <StatisticsProductPage page={page} />;
+  if (page.path === "/quan-ly-thu-chi") return <TransactionProductPage page={page} />;
+  if (page.path === "/lap-ngan-sach") return <BudgetProductPage page={page} />;
+  if (page.path === "/tinh-nang") return <FeaturesProductPage page={page} />;
+  return <GenericProductPage page={page} />;
+}
+
 
 /* ---------- Blog index ---------- */
 

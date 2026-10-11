@@ -852,6 +852,88 @@ body {
 }
 .phone-dim { position: absolute; inset: 0; background: #050404; z-index: 2; opacity: 0; pointer-events: none; }
 
+/* ---------- 2.5D Device Perspective & Motion System ---------- */
+.device-stage {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+.device-transform-wrap {
+  position: relative;
+  transition: transform 600ms var(--ease-cine), filter 600ms ease;
+  transform-style: preserve-3d;
+}
+.device-hero {
+  transform: rotateX(2deg) translateY(0);
+}
+.device-perspective-left {
+  transform: rotateY(12deg) rotateX(4deg) rotateZ(-1deg);
+}
+.device-perspective-right {
+  transform: rotateY(-12deg) rotateX(4deg) rotateZ(1deg);
+}
+.device-floating {
+  animation: float-device 6s ease-in-out infinite;
+}
+.device-flat {
+  transform: none;
+}
+
+@keyframes float-device {
+  0%, 100% { transform: translateY(0px) rotateX(2deg); }
+  50% { transform: translateY(-12px) rotateX(4deg); }
+}
+
+.device-ground-shadow {
+  position: absolute;
+  bottom: -24px;
+  left: 10%;
+  right: 10%;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, transparent 70%);
+  filter: blur(8px);
+  pointer-events: none;
+  transition: transform 600ms var(--ease-cine), opacity 600ms ease;
+}
+.shadow-perspective-left {
+  transform: translateX(-15px) scaleX(0.9);
+}
+.shadow-perspective-right {
+  transform: translateX(15px) scaleX(0.9);
+}
+.shadow-floating {
+  animation: shadow-pulse 6s ease-in-out infinite;
+}
+@keyframes shadow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.45; }
+  50% { transform: scale(0.85); opacity: 0.25; }
+}
+
+/* Floating UI Chips */
+.floating-chip {
+  animation: float-chip 4.5s ease-in-out infinite;
+}
+@keyframes float-chip {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (max-width: 767px) {
+  .device-stage { perspective: none; }
+  .device-transform-wrap { transform: none !important; }
+  .device-ground-shadow { bottom: -12px; }
+  .floating-chip { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .device-floating,
+  .shadow-floating,
+  .floating-chip {
+    animation: none !important;
+  }
+}
+
+
 /* ---------- Product mockups ---------- */
 .mock-screen-content { height: 100%; }
 .mock-status {
