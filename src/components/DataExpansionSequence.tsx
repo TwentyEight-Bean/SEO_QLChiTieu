@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Phone from "../Phone";
 
-type ExpansionStage = 0 | 1 | 2 | 3;
+export type ExpansionStage = 0 | 1 | 2 | 3;
 
 interface StageInfo {
   index: ExpansionStage;
@@ -10,16 +10,20 @@ interface StageInfo {
   tag: string;
   title: string;
   desc: string;
+  depthZ: string;
+  focalLayer: string;
 }
 
 const STAGES: StageInfo[] = [
   {
     index: 0,
-    label: "01. Màn hình gốc",
-    sub: "Giao diện phẳng",
+    label: "01. Màn hình phẳng",
+    sub: "Dữ liệu 2D",
     tag: "Khởi đầu",
-    title: "Dữ liệu gói gọn trong khung máy",
-    desc: "Mọi thống kê bắt đầu từ một màn hình di động quen thuộc. Nhưng chiều sâu thực sự của dòng tiền nằm ở mối quan hệ giữa các con số.",
+    title: "Gói gọn trong khung viền điện thoại",
+    desc: "Mọi thống kê tài chính bắt đầu từ màn hình điện thoại 2D quen thuộc. Biểu đồ cột và tỷ trọng danh mục nằm phẳng theo mặt kính, sẵn sàng cho việc ghi nhận hằng ngày.",
+    depthZ: "0px (Mặt kính)",
+    focalLayer: "Màn hình ứng dụng gốc",
   },
   {
     index: 1,
@@ -27,31 +31,39 @@ const STAGES: StageInfo[] = [
     sub: "Giải phóng biểu đồ",
     tag: "Tách lớp",
     title: "Biểu đồ nâng lên khỏi mặt kính",
-    desc: "Các cột chi tiêu và đường cong biến động tự động nổi khối về phía trước (+80px), giải phóng thị giác khỏi giới hạn viền màn hình.",
+    desc: "Các cột chi tiêu và đường cong biến động tự động nổi khối theo trục Z (+80px), giải phóng thị giác vượt ra ngoài giới hạn vật lý của khung viền điện thoại.",
+    depthZ: "+80px (Tiền cảnh)",
+    focalLayer: "Cột thể tích 3D & Đỉnh T6",
   },
   {
     index: 2,
     label: "03. Phân tầng không gian",
-    sub: "Đa chiều 2.5D",
+    sub: "Bóc tách đa chiều",
     tag: "Không gian hóa",
     title: "Bóc tách 3 tầng dữ liệu độc lập",
-    desc: "Thân máy lùi về hậu cảnh (-60px). Tầng tiền cảnh làm nổi bật các đỉnh chi tiêu đột biến và danh mục trọng yếu bằng thẻ kính nổi.",
+    desc: "Thân máy lùi sâu về hậu cảnh (-80px). Tầng tiền cảnh (+150px) làm nổi bật vòng cơ cấu danh mục và các thẻ phân tích hành vi với đường chỉ định vị chính xác.",
+    depthZ: "+150px / -80px",
+    focalLayer: "Vòng cơ cấu & Thẻ hành vi",
   },
   {
     index: 3,
-    label: "04. Hội tụ tín hiệu",
-    sub: "Bức tranh hoàn chỉnh",
+    label: "04. Hội tụ toàn cảnh",
+    sub: "Bố cục hoàn chỉnh",
     tag: "Toàn cảnh",
     title: "Bức tranh tài chính thấu suốt",
-    desc: "Các lớp dữ liệu khóa lại thành một bố cục phân tích cân bằng. Bạn thấy rõ bức tranh tổng thể và từng mắt xích chi tiêu cùng lúc.",
+    desc: "Toàn bộ các tầng dữ liệu khóa lại thành một bố cục trình diễn cân bằng. Bạn vừa quan sát được toàn cảnh dòng tiền vĩ mô, vừa nắm bắt tức thì từng điểm nút chi tiêu vi mô.",
+    depthZ: "Cân bằng HUD",
+    focalLayer: "Bố cục điều hành đồng bộ",
   },
 ];
 
 export default function DataExpansionSequence() {
   const [currentStage, setCurrentStage] = useState<ExpansionStage>(1);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeLayer, setActiveLayer] = useState<"phone" | "bars" | "donut" | "summary">("bars");
+  const containerRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  // Auto progression on scroll trigger
+  // Subtle intersection observer trigger
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -59,8 +71,8 @@ export default function DataExpansionSequence() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
-            // Once in view, encourage exploration
+          if (entry.isIntersecting && entry.intersectionRatio > 0.45) {
+            // In view, subtle engagement
           }
         });
       },
@@ -73,196 +85,288 @@ export default function DataExpansionSequence() {
 
   const stage = STAGES[currentStage];
 
+  // Scrub timeline handler (Satisfying Prism craft.md: seek-able progress bar)
+  const handleScrub = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    const targetStage = Math.round(ratio * 3) as ExpansionStage;
+    setCurrentStage(targetStage);
+  };
+
   return (
     <section
       ref={containerRef}
-      className="data-expansion-section relative overflow-hidden bg-[#0e0b0a] py-24 text-paper md:py-36"
+      className="data-expansion-section relative overflow-hidden bg-[#0c0908] py-24 text-paper md:py-36"
       aria-labelledby="expansion-heading"
     >
-      {/* 3D Atmospheric Background */}
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_35%,#2b1812_0%,#0e0b0a_70%)] opacity-80" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,transparent_0%,rgba(210,58,34,0.03)_50%,transparent_100%)]" />
+      {/* Cinematic Studio Backdrop & Lighting */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_40%,#261612_0%,#0c0908_75%)] opacity-90" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-paper/15 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-paper/10 to-transparent" />
 
-      {/* Grid Floor Perspective Lines */}
+      {/* Subtle Studio Geometry Halo */}
       <div
-        className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-[400px] w-[1400px] -translate-x-1/2 opacity-25"
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-[min(80vw,720px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-paper/10 transition-transform duration-700"
         style={{
-          background:
-            "linear-gradient(to top, rgba(242,236,223,0.08) 1px, transparent 1px), linear-gradient(to right, rgba(242,236,223,0.08) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          transform: "perspective(600px) rotateX(65deg)",
-          maskImage: "linear-gradient(to top, black 20%, transparent 95%)",
+          transform: `translate(-50%, -50%) scale(${0.9 + currentStage * 0.08})`,
         }}
         aria-hidden
-      />
+      >
+        <span className="absolute inset-[18%] rounded-full border border-vermilion/20" />
+      </div>
 
       <div className="mx-auto max-w-[1300px] px-6 md:px-10">
-        {/* Section Header */}
+        {/* Section Editorial Header */}
         <div className="mx-auto max-w-3xl text-center">
           <p className="flex items-center justify-center gap-3 text-[11px] font-medium uppercase tracking-[0.28em] text-paper/60">
             <span className="font-display text-base text-vermilion">Trải nghiệm thị giác</span>
             <span className="h-px w-8 bg-current opacity-40" />
             App → Data Expansion
           </p>
-          <h2 id="expansion-heading" className="mt-4 font-display text-[clamp(2.4rem,5vw,4.5rem)] font-light leading-[1.08]">
+          <h2 id="expansion-heading" className="mt-4 font-display text-[clamp(2.4rem,5vw,4.5rem)] font-light leading-[1.08] text-paper">
             Khi dữ liệu vượt ra ngoài <br />
             <span className="italic text-paper/80">khung viền chiếc điện thoại</span>
           </h2>
           <p className="mt-5 text-base leading-relaxed text-paper/70">
-            Khám phá quy trình Sổ Chi bóc tách dòng tiền: từ một màn hình ghi chép phẳng nở ra thành không gian phân tích đa tầng trực quan.
+            Khám phá quy trình Sổ Chi bóc tách dòng tiền: từ một màn hình ghi chép phẳng nở ra thành không gian phân tích 2.5D đa tầng trực quan.
           </p>
         </div>
 
-        {/* Milestone Steps Bar */}
-        <div className="mt-12 flex flex-wrap justify-center gap-2 md:gap-4" role="tablist" aria-label="Các giai đoạn tách lớp dữ liệu">
-          {STAGES.map((s) => (
-            <button
-              key={s.index}
-              type="button"
-              role="tab"
-              aria-selected={currentStage === s.index}
-              onClick={() => setCurrentStage(s.index)}
-              className={`group flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.16em] transition-all duration-300 md:px-5 md:py-2.5 ${
-                currentStage === s.index
-                  ? "border-vermilion bg-vermilion text-paper font-medium shadow-lg shadow-vermilion/40 scale-105"
-                  : "border-paper/15 bg-paper/5 text-paper/60 hover:border-paper/30 hover:bg-paper/10 hover:text-paper"
-              }`}
+        {/* Milestone Steps Bar & Seekable Scrubber Track */}
+        <div className="mx-auto mt-12 max-w-2xl">
+          {/* Milestone Tabs */}
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3" role="tablist" aria-label="Các giai đoạn tách lớp dữ liệu">
+            {STAGES.map((s) => (
+              <button
+                key={s.index}
+                type="button"
+                role="tab"
+                aria-selected={currentStage === s.index}
+                onClick={() => setCurrentStage(s.index)}
+                className={`group flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.16em] transition-all duration-300 md:px-5 md:py-2.5 ${
+                  currentStage === s.index
+                    ? "border-vermilion bg-vermilion text-paper font-medium shadow-lg shadow-vermilion/40 scale-105"
+                    : "border-paper/15 bg-paper/5 text-paper/60 hover:border-paper/30 hover:bg-paper/10 hover:text-paper"
+                }`}
+              >
+                <span>{s.label}</span>
+                <span className="hidden text-[10px] opacity-70 sm:inline">· {s.sub}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Seekable Scrubber Track (Prism craft.md §38) */}
+          <div className="mt-6 px-4">
+            <div
+              ref={trackRef}
+              onClick={handleScrub}
+              className="group relative h-2 w-full cursor-pointer rounded-full bg-paper/10 transition-colors hover:bg-paper/15"
+              title="Kéo hoặc nhấn để tua giai đoạn trình diễn"
             >
-              <span>{s.label}</span>
-              <span className="hidden text-[10px] opacity-70 sm:inline">· {s.sub}</span>
-            </button>
-          ))}
+              {/* Progress Fill */}
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-vermilion/80 to-vermilion transition-all duration-500 ease-out"
+                style={{ width: `${(currentStage / 3) * 100}%` }}
+              />
+              {/* Playhead Handle */}
+              <div
+                className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-vermilion shadow-lg shadow-vermilion/50 transition-all duration-500 ease-out group-hover:scale-125"
+                style={{ left: `${(currentStage / 3) * 100}%` }}
+              />
+            </div>
+            <div className="mt-2 flex justify-between text-[10px] font-mono uppercase tracking-wider text-paper/40">
+              <span>0% Khởi đầu</span>
+              <span>Độ sâu: {stage.depthZ}</span>
+              <span>100% Hoàn chỉnh</span>
+            </div>
+          </div>
         </div>
 
-        {/* Interactive 3D Stage & Story Grid */}
+        {/* 2.5D Expanding Holographic Stage & Narrative Split */}
         <div className="mt-16 grid items-center gap-12 lg:grid-cols-[1fr_420px]">
-          {/* Left: The 2.5D Expanding Holographic Canvas */}
-          <div className="expansion-stage relative mx-auto flex min-h-[540px] w-full max-w-[660px] items-center justify-center">
-            {/* Ambient Vermilion Flare */}
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-vermilion/20 blur-[80px] transition-all duration-700"
-              style={{
-                opacity: currentStage === 0 ? 0.3 : currentStage === 2 ? 0.8 : 0.6,
-                transform: `translate(-50%, -50%) scale(${1 + currentStage * 0.15})`,
-              }}
-              aria-hidden
-            />
+          {/* Left: The 2.5D Multi-Layer Camera Rig */}
+          <div className="expansion-viewport w-full overflow-visible select-none">
+            <div className="expansion-camera-rig">
+              {/* Layer 0: Ambient Vermilion Contact Glow */}
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-vermilion/20 blur-[90px] transition-all duration-700"
+                style={{
+                  opacity: currentStage === 0 ? 0.25 : currentStage === 2 ? 0.85 : 0.6,
+                  transform: `translate(-50%, -50%) scale(${1 + currentStage * 0.15})`,
+                }}
+                aria-hidden
+              />
 
-            {/* Base Phone Chassis */}
-            <div
-              className="expansion-phone-layer transition-all duration-700 ease-out"
-              style={{
-                transform:
-                  currentStage === 0
-                    ? "translateZ(0px) scale(1) rotateY(0deg) rotateX(0deg)"
-                    : currentStage === 1
-                    ? "translateZ(-20px) scale(0.96) rotateY(-6deg) rotateX(4deg)"
-                    : currentStage === 2
-                    ? "translateZ(-80px) scale(0.88) rotateY(-14deg) rotateX(8deg)"
-                    : "translateZ(-40px) scale(0.92) rotateY(-8deg) rotateX(4deg)",
-                filter: currentStage === 0 ? "brightness(1)" : currentStage === 2 ? "brightness(0.75)" : "brightness(0.9)",
-                opacity: currentStage === 0 ? 1 : currentStage === 2 ? 0.75 : 0.9,
-              }}
-            >
-              <Phone screen="thong-ke" alt="Màn hình thống kê gốc" w="clamp(240px, 25vw, 290px)" />
-            </div>
+              {/* Layer 1: Base Phone Chassis (Moves backward along Z-axis as data expands) */}
+              <div
+                onClick={() => setActiveLayer("phone")}
+                className="expansion-phone-chassis cursor-pointer"
+                title="Nhấn để xem cấu trúc thân máy"
+                style={{
+                  transform:
+                    currentStage === 0
+                      ? "translate(-50%, -50%) translateZ(0px) scale(1) rotateX(0deg) rotateY(0deg)"
+                      : currentStage === 1
+                      ? "translate(-50%, -50%) translateZ(-30px) scale(0.96) rotateX(6deg) rotateY(-8deg)"
+                      : currentStage === 2
+                      ? "translate(-50%, -50%) translateZ(-80px) scale(0.88) rotateX(8deg) rotateY(-14deg)"
+                      : "translate(-50%, -50%) translateZ(0px) scale(1) rotateX(2deg) rotateY(-4deg)",
+                  filter:
+                    currentStage === 0
+                      ? "brightness(1)"
+                      : currentStage === 2
+                      ? "brightness(0.75)"
+                      : "brightness(0.92)",
+                  opacity: currentStage === 0 ? 1 : currentStage === 2 ? 0.75 : 0.95,
+                  zIndex: 10,
+                }}
+              >
+                <Phone screen="thong-ke" alt="Màn hình thống kê Sổ Chi gốc" w="clamp(230px, 24vw, 285px)" />
+              </div>
 
-            {/* Layer 1: Floating Volumetric 3D Bar Columns (Break out beyond the screen) */}
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out"
-              style={{
-                opacity: currentStage === 0 ? 0 : 1,
-                transform:
-                  currentStage === 0
-                    ? "translate(-50%, -50%) translateZ(0px) scale(0.8)"
-                    : currentStage === 1
-                    ? "translate(calc(-50% + 20px), calc(-50% - 30px)) translateZ(70px) scale(1.05) rotateY(-6deg)"
-                    : currentStage === 2
-                    ? "translate(calc(-50% + 50px), calc(-50% - 50px)) translateZ(120px) scale(1.12) rotateY(-14deg)"
-                    : "translate(calc(-50% + 30px), calc(-50% - 35px)) translateZ(85px) scale(1.06) rotateY(-8deg)",
-              }}
-            >
-              <div className="flex items-end gap-3 rounded-2xl border border-vermilion/40 bg-[#1c1412]/85 p-4 shadow-2xl backdrop-blur-xl">
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-paper/50">T2</span>
-                  <div className="w-4 rounded-t-sm bg-paper/20 transition-all duration-700" style={{ height: currentStage >= 2 ? "52px" : "36px" }} />
-                </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-paper/50">T3</span>
-                  <div className="w-4 rounded-t-sm bg-paper/20 transition-all duration-700" style={{ height: currentStage >= 2 ? "44px" : "30px" }} />
-                </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-paper/50">T4</span>
-                  <div className="w-4 rounded-t-sm bg-paper/30 transition-all duration-700" style={{ height: currentStage >= 2 ? "78px" : "58px" }} />
-                </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-paper/50">T5</span>
-                  <div className="w-4 rounded-t-sm bg-paper/30 transition-all duration-700" style={{ height: currentStage >= 2 ? "60px" : "46px" }} />
-                </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] font-semibold text-vermilion">T6 ★</span>
-                  <div className="w-5 rounded-t-sm bg-gradient-to-t from-vermilion to-vermilion-bright shadow-lg shadow-vermilion/50 transition-all duration-700" style={{ height: currentStage >= 2 ? "110px" : "90px" }} />
-                  <span className="text-[9px] font-medium text-vermilion">380k</span>
-                </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-paper/50">T7</span>
-                  <div className="w-4 rounded-t-sm bg-paper/40 transition-all duration-700" style={{ height: currentStage >= 2 ? "85px" : "68px" }} />
-                </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-paper/50">CN</span>
-                  <div className="w-4 rounded-t-sm bg-paper/40 transition-all duration-700" style={{ height: currentStage >= 2 ? "74px" : "55px" }} />
+              {/* Layer 2: Volumetric 3D Data Bars (Lift directly off the glass +80px to +120px) */}
+              <div
+                onClick={() => setActiveLayer("bars")}
+                className="expansion-layer-bars cursor-pointer"
+                title="Nhấn để xem biểu đồ thể tích"
+                style={{
+                  opacity: currentStage === 0 ? 0 : 1,
+                  transform:
+                    currentStage === 0
+                      ? "translate(-50%, calc(-50% - 20px)) translateZ(0px) scale(0.85)"
+                      : currentStage === 1
+                      ? "translate(calc(-50% + 20px), calc(-50% - 40px)) translateZ(80px) scale(1.05) rotateX(6deg) rotateY(-8deg)"
+                      : currentStage === 2
+                      ? "translate(calc(-50% + 30px), calc(-50% - 70px)) translateZ(110px) scale(1.08) rotateX(8deg) rotateY(-12deg)"
+                      : "translate(calc(-50% + 15px), calc(-50% - 35px)) translateZ(55px) scale(1.02) rotateX(2deg) rotateY(-4deg)",
+                  zIndex: 25,
+                }}
+              >
+                {/* 3D Glass Bar Stage with Real Shadow Projection */}
+                <div className="relative rounded-2xl border border-vermilion/50 bg-[#1e1513]/90 p-4 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-vermilion">
+                  <div className="flex items-center justify-between border-b border-paper/10 pb-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-vermilion font-medium">
+                      Biến động tuần · Tầng +80px
+                    </span>
+                    <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[9px] text-vermilion font-semibold">
+                      Live Volumetric
+                    </span>
+                  </div>
+
+                  {/* 7 Extruded Volume Bars */}
+                  <div className="mt-3 flex items-end gap-3">
+                    {[
+                      { day: "T2", height: currentStage >= 2 ? 45 : 35, val: "140k" },
+                      { day: "T3", height: currentStage >= 2 ? 38 : 30, val: "110k" },
+                      { day: "T4", height: currentStage >= 2 ? 72 : 55, val: "260k" },
+                      { day: "T5", height: currentStage >= 2 ? 55 : 42, val: "190k" },
+                      { day: "T6", height: currentStage >= 2 ? 105 : 88, isPeak: true, val: "380k" },
+                      { day: "T7", height: currentStage >= 2 ? 80 : 64, val: "290k" },
+                      { day: "CN", height: currentStage >= 2 ? 70 : 54, val: "270k" },
+                    ].map((bar) => (
+                      <div key={bar.day} className="flex flex-col items-center gap-1.5">
+                        <span className={`text-[9px] ${bar.isPeak ? "font-bold text-vermilion" : "text-paper/50"}`}>
+                          {bar.day}
+                        </span>
+                        <div
+                          className={`w-4.5 rounded-t-sm transition-all duration-700 ease-out ${
+                            bar.isPeak
+                              ? "bg-gradient-to-t from-vermilion via-vermilion to-vermilion-bright shadow-lg shadow-vermilion/60 ring-1 ring-vermilion/50"
+                              : "bg-paper/25 hover:bg-paper/40"
+                          }`}
+                          style={{ height: `${bar.height}px` }}
+                        />
+                        <span className={`text-[8px] font-mono ${bar.isPeak ? "font-bold text-vermilion" : "text-paper/40"}`}>
+                          {bar.val}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Peak Indicator Callout Pin */}
+                  <div className="mt-2.5 flex items-center justify-between border-t border-paper/10 pt-2 text-[10px]">
+                    <span className="text-paper/60">Đỉnh chi tiêu Thứ Sáu:</span>
+                    <strong className="text-vermilion">380.000 ₫ (Gấp 2,2× T2)</strong>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Layer 2: Floating Foreground Insight Chips (Depth z-index 40) */}
-            <div
-              className="pointer-events-none absolute left-2 top-8 z-30 transition-all duration-700 ease-out md:left-6 md:top-12"
-              style={{
-                opacity: currentStage >= 2 ? 1 : 0,
-                transform: currentStage >= 2 ? "translateZ(140px) scale(1) translateY(0)" : "translateZ(30px) scale(0.8) translateY(20px)",
-              }}
-            >
-              <div className="rounded-xl border border-paper/20 bg-[#16110f]/90 px-3.5 py-2.5 shadow-2xl backdrop-blur-md">
-                <span className="block text-[9px] uppercase tracking-wider text-paper/50">Nhóm chi lớn nhất</span>
-                <div className="mt-0.5 flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-vermilion" />
-                  <strong className="text-xs font-medium text-paper">Ăn uống · 38%</strong>
-                  <span className="text-[10px] text-paper/60">(2.370.000 ₫)</span>
+              {/* Layer 3: Detached Category Donut Ring (+140px in Stage 2 & 3) */}
+              <div
+                onClick={() => setActiveLayer("donut")}
+                className="expansion-layer-donut cursor-pointer"
+                title="Nhấn để xem cơ cấu danh mục nổi"
+                style={{
+                  opacity: currentStage >= 2 ? 1 : 0,
+                  transform:
+                    currentStage === 2
+                      ? "translate(calc(-50% - 135px), calc(-50% - 85px)) translateZ(140px) scale(0.96) rotateX(4deg) rotateY(-6deg)"
+                      : currentStage === 3
+                      ? "translate(calc(-50% - 120px), calc(-50% - 75px)) translateZ(70px) scale(0.94) rotateX(2deg) rotateY(-4deg)"
+                      : "translate(-50%, -50%) translateZ(0px) scale(0.7)",
+                  zIndex: 35,
+                }}
+              >
+                <div className="rounded-2xl border border-paper/20 bg-[#16100e]/95 p-3.5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-vermilion/60">
+                  <div className="flex items-center gap-3">
+                    {/* Mini SVG Donut */}
+                    <div className="relative size-12 shrink-0">
+                      <svg className="size-full -rotate-90" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeOpacity="0.1" strokeWidth="5" />
+                        <circle cx="20" cy="20" r="14" fill="none" stroke="#d23a22" strokeWidth="5" strokeDasharray="33 55" strokeDashoffset="0" />
+                        <circle cx="20" cy="20" r="14" fill="none" stroke="#17120f" strokeWidth="5" strokeDasharray="24 64" strokeDashoffset="-33" />
+                        <circle cx="20" cy="20" r="14" fill="none" stroke="#b8935a" strokeWidth="5" strokeDasharray="17 71" strokeDashoffset="-57" />
+                      </svg>
+                      <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] font-bold text-vermilion">
+                        38%
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="block text-[9px] uppercase tracking-wider text-paper/50">Cơ cấu tách tầng</span>
+                      <strong className="block text-xs text-paper">Ăn uống · 2.370k</strong>
+                      <span className="text-[10px] text-paper/60">Nhà ở 27% · Di chuyển 19%</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div
-              className="pointer-events-none absolute -bottom-4 right-4 z-30 transition-all duration-700 ease-out md:bottom-2 md:right-8"
-              style={{
-                opacity: currentStage >= 2 ? 1 : 0,
-                transform: currentStage >= 2 ? "translateZ(150px) scale(1) translateY(0)" : "translateZ(30px) scale(0.8) translateY(-20px)",
-              }}
-            >
-              <div className="rounded-xl border border-gold/40 bg-[#1a140f]/90 px-3.5 py-2.5 shadow-2xl backdrop-blur-md">
-                <span className="block text-[9px] uppercase tracking-wider text-gold">Nhịp chi cuối tuần</span>
-                <strong className="mt-0.5 block text-xs font-medium text-paper">T6 - CN chiếm 52% tuần</strong>
-                <p className="mt-0.5 text-[10px] text-paper/60">Tăng mạnh vào các buổi họp mặt</p>
+              {/* Layer 4: Floating Executive Summary Card (+130px in Stage 2 & 3) */}
+              <div
+                onClick={() => setActiveLayer("summary")}
+                className="expansion-layer-summary cursor-pointer"
+                title="Nhấn để xem tổng kết tài chính"
+                style={{
+                  opacity: currentStage >= 2 ? 1 : 0,
+                  transform:
+                    currentStage === 2
+                      ? "translate(calc(-50% + 120px), calc(-50% + 120px)) translateZ(135px) scale(0.96) rotateX(4deg) rotateY(-6deg)"
+                      : currentStage === 3
+                      ? "translate(calc(-50% + 105px), calc(-50% + 110px)) translateZ(65px) scale(0.94) rotateX(2deg) rotateY(-4deg)"
+                      : "translate(-50%, -50%) translateZ(0px) scale(0.7)",
+                  zIndex: 35,
+                }}
+              >
+                <div className="rounded-2xl border border-gold/40 bg-[#18120e]/95 p-3.5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-gold">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <span className="block text-[9px] uppercase tracking-wider text-gold font-medium">Nhịp chi cuối tuần</span>
+                      <strong className="mt-0.5 block text-xs font-semibold text-paper">T6 - CN chiếm 52%</strong>
+                    </div>
+                    <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] text-emerald-400 font-medium">
+                      ↓ 12% tháng
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[10px] text-paper/60">Đã tiết kiệm được 480k so với hạn mức</p>
+                </div>
               </div>
-            </div>
-
-            {/* Layer 3: Dynamic Measurement Grid Wireframe (Stage 3 & 4) */}
-            <div
-              className="pointer-events-none absolute inset-4 -z-5 rounded-3xl border border-paper/10 transition-all duration-700"
-              style={{
-                opacity: currentStage === 3 ? 0.6 : 0,
-                transform: currentStage === 3 ? "translateZ(40px) scale(1.05)" : "translateZ(-20px) scale(0.9)",
-              }}
-              aria-hidden
-            >
-              <span className="absolute left-4 top-4 text-[9px] font-mono text-paper/40">+Z DEPTH: 140PX</span>
-              <span className="absolute bottom-4 right-4 text-[9px] font-mono text-paper/40">HUD RESOLVED ✓</span>
             </div>
           </div>
 
-          {/* Right: Narrative Story Card */}
-          <div className="rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1a1412] to-[#0c0908] p-8 shadow-2xl md:p-10">
+          {/* Right: Narrative Story & Engineering Insight Card */}
+          <div className="rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1c1411] to-[#0e0a09] p-8 shadow-2xl md:p-10">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-[0.24em] text-vermilion font-medium">{stage.tag}</span>
               <span className="font-mono text-xs text-paper/40">GIAI ĐOẠN 0{stage.index + 1}/04</span>
@@ -278,30 +382,30 @@ export default function DataExpansionSequence() {
 
             {/* Micro Feature Bullet Points */}
             <div className="mt-8 border-t border-paper/10 pt-6">
-              <span className="text-[11px] uppercase tracking-[0.2em] text-paper/50">Chi tiết kỹ thuật:</span>
+              <span className="text-[11px] uppercase tracking-[0.2em] text-paper/50">Chi tiết công nghệ & thị giác:</span>
               <ul className="mt-3 space-y-3">
                 <li className="flex items-center gap-3 text-xs text-paper/85">
                   <span className="size-1.5 rounded-full bg-vermilion" />
                   <span>
-                    {currentStage === 0 && "Render chuẩn xác 1:1 tỉ lệ màn hình thực tế."}
-                    {currentStage === 1 && "Trục Z đẩy cột biểu đồ nổi +80px về phía mắt nhìn."}
-                    {currentStage === 2 && "Phân tách rõ ràng tiền cảnh (insight) và hậu cảnh (thân máy)."}
-                    {currentStage === 3 && "Tự động cân bằng thị giác, không làm loãng thông tin cốt lõi."}
+                    {currentStage === 0 && "Render 1:1 theo chuẩn giao diện ứng dụng Sổ Chi phát hành."}
+                    {currentStage === 1 && "Trục Z đẩy cột biểu đồ nổi +80px về phía mắt nhìn, phá vỡ khung viền."}
+                    {currentStage === 2 && "Phân tách 3 tầng độc lập: Thân máy (-80px), Cột thể tích (+90px), Donut (+140px)."}
+                    {currentStage === 3 && "Hội tụ thành bố cục bảng điều khiển HUD cân bằng hoàn hảo quanh máy."}
                   </span>
                 </li>
                 <li className="flex items-center gap-3 text-xs text-paper/85">
                   <span className="size-1.5 rounded-full bg-gold" />
                   <span>
-                    {currentStage === 0 && "Phù hợp ghi chép hằng ngày trong 3 giây."}
-                    {currentStage === 1 && "Nhận diện tức thì cột cao nhất (đỉnh chi tiêu)."}
-                    {currentStage === 2 && "Dữ liệu được sắp xếp theo mức độ ưu tiên hành vi."}
-                    {currentStage === 3 && "Sẵn sàng cho việc lập kế hoạch ngân sách chu kỳ tới."}
+                    {currentStage === 0 && "Tối ưu hóa thao tác nhập liệu chỉ 3 giây mỗi giao dịch."}
+                    {currentStage === 1 && "Nhận diện tức thì cột cao nhất (Đỉnh chi Thứ Sáu: 380k)."}
+                    {currentStage === 2 && "Tự động phân nhóm thông minh theo quy tắc tỷ lệ 50/30/20."}
+                    {currentStage === 3 && "Sẵn sàng làm cơ sở dữ liệu xác thực cho kế hoạch ngân sách chu kỳ tới."}
                   </span>
                 </li>
               </ul>
             </div>
 
-            {/* Quick Next/Prev Navigation */}
+            {/* Quick Next/Prev Step Navigation */}
             <div className="mt-8 flex items-center justify-between border-t border-paper/10 pt-6">
               <button
                 type="button"
@@ -309,14 +413,14 @@ export default function DataExpansionSequence() {
                 onClick={() => setCurrentStage((prev) => Math.max(0, prev - 1) as ExpansionStage)}
                 className="cursor-pointer text-xs uppercase tracking-wider text-paper/60 transition-colors hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
               >
-                ← Bước trước
+                ← Giai đoạn trước
               </button>
               <div className="flex gap-1.5">
                 {STAGES.map((s) => (
                   <span
                     key={s.index}
                     onClick={() => setCurrentStage(s.index)}
-                    className={`block size-2 cursor-pointer rounded-full transition-all ${
+                    className={`block size-2 cursor-pointer rounded-full transition-all duration-300 ${
                       currentStage === s.index ? "w-6 bg-vermilion" : "bg-paper/20 hover:bg-paper/40"
                     }`}
                   />
@@ -328,7 +432,7 @@ export default function DataExpansionSequence() {
                 onClick={() => setCurrentStage((prev) => Math.min(3, prev + 1) as ExpansionStage)}
                 className="cursor-pointer text-xs uppercase tracking-wider text-vermilion font-medium transition-colors hover:text-vermilion-bright disabled:cursor-not-allowed disabled:opacity-30"
               >
-                Bước tiếp →
+                Giai đoạn tiếp →
               </button>
             </div>
           </div>

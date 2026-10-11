@@ -1120,7 +1120,85 @@ body {
   }
 }
 
+/* ---------- 2.5D Data Expansion Stage (Signature Scene) ---------- */
+.expansion-viewport {
+  perspective: 1300px;
+  transform-style: preserve-3d;
+  position: relative;
+  min-height: 580px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.expansion-camera-rig {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  height: 560px;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+@media (max-width: 767px) {
+  .expansion-viewport {
+    min-height: 520px;
+    perspective: 1000px;
+  }
+  .expansion-camera-rig {
+    transform: scale(0.72);
+  }
+}
+
+.expansion-phone-chassis {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease, filter 700ms ease;
+  will-change: transform, opacity, filter;
+}
+
+.expansion-layer-bars {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease;
+  will-change: transform, opacity;
+}
+
+.expansion-layer-donut {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease;
+  will-change: transform, opacity;
+}
+
+.expansion-layer-summary {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1), opacity 700ms ease;
+  will-change: transform, opacity;
+}
+
+/* Reduced-motion overrides per Prism craft.md */
+@media (prefers-reduced-motion: reduce) {
+  .expansion-camera-rig,
+  .expansion-phone-chassis,
+  .expansion-layer-bars,
+  .expansion-layer-donut,
+  .expansion-layer-summary {
+    transition: none !important;
+    animation: none !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
 
 /* ---------- Product mockups ---------- */
 .mock-screen-content { height: 100%; }
