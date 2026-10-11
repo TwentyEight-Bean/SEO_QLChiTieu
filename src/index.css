@@ -944,6 +944,183 @@ body {
   }
 }
 
+/* ---------- Ordered 3-Phone Stage for Feature Ecosystem (1 -> 2 -> 3) ---------- */
+.ecosystem-stage {
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  position: relative;
+  min-height: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ecosystem-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transition: transform 650ms var(--ease-cine), opacity 650ms ease, filter 650ms ease;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+}
+
+/* === STATE 1: THU & CHI ACTIVE (Slot 1 Front, Slot 2 & 3 in natural cascade to the right) === */
+.ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="1"] {
+  transform: translate(calc(-50% - 90px), -50%) translateZ(60px) scale(1.06) rotateY(4deg);
+  z-index: 30;
+  opacity: 1;
+  filter: brightness(1);
+  pointer-events: auto;
+}
+.ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="2"] {
+  transform: translate(calc(-50% + 25px), -50%) translateZ(-15px) scale(0.92) rotateY(-8deg);
+  z-index: 20;
+  opacity: 0.65;
+  filter: brightness(0.8);
+  cursor: pointer;
+}
+.ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="2"]:hover {
+  opacity: 0.85;
+  filter: brightness(0.92);
+  transform: translate(calc(-50% + 25px), -50%) translateZ(5px) scale(0.94) rotateY(-5deg);
+}
+.ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="3"] {
+  transform: translate(calc(-50% + 140px), -50%) translateZ(-50px) scale(0.82) rotateY(-18deg);
+  z-index: 10;
+  opacity: 0.4;
+  filter: brightness(0.68);
+  cursor: pointer;
+}
+.ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="3"]:hover {
+  opacity: 0.7;
+  filter: brightness(0.85);
+}
+
+/* === STATE 2: THỐNG KÊ ACTIVE (Slot 2 Front-Center, Slot 1 Left wing, Slot 3 Right wing) === */
+.ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="1"] {
+  transform: translate(calc(-50% - 130px), -50%) translateZ(-20px) scale(0.9) rotateY(14deg);
+  z-index: 20;
+  opacity: 0.65;
+  filter: brightness(0.8);
+  cursor: pointer;
+}
+.ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="1"]:hover {
+  opacity: 0.85;
+  filter: brightness(0.92);
+  transform: translate(calc(-50% - 130px), -50%) translateZ(0px) scale(0.92) rotateY(10deg);
+}
+.ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="2"] {
+  transform: translate(-50%, -50%) translateZ(70px) scale(1.08) rotateY(0deg);
+  z-index: 30;
+  opacity: 1;
+  filter: brightness(1);
+  pointer-events: auto;
+}
+.ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="3"] {
+  transform: translate(calc(-50% + 130px), -50%) translateZ(-20px) scale(0.9) rotateY(-14deg);
+  z-index: 20;
+  opacity: 0.65;
+  filter: brightness(0.8);
+  cursor: pointer;
+}
+.ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="3"]:hover {
+  opacity: 0.85;
+  filter: brightness(0.92);
+  transform: translate(calc(-50% + 130px), -50%) translateZ(0px) scale(0.92) rotateY(-10deg);
+}
+
+/* === STATE 3: NGÂN SÁCH ACTIVE (Slot 3 Front, Slot 1 & 2 in natural cascade to the left) === */
+.ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="1"] {
+  transform: translate(calc(-50% - 140px), -50%) translateZ(-50px) scale(0.82) rotateY(18deg);
+  z-index: 10;
+  opacity: 0.4;
+  filter: brightness(0.68);
+  cursor: pointer;
+}
+.ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="1"]:hover {
+  opacity: 0.7;
+  filter: brightness(0.85);
+}
+.ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="2"] {
+  transform: translate(calc(-50% - 25px), -50%) translateZ(-15px) scale(0.92) rotateY(8deg);
+  z-index: 20;
+  opacity: 0.65;
+  filter: brightness(0.8);
+  cursor: pointer;
+}
+.ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="2"]:hover {
+  opacity: 0.85;
+  filter: brightness(0.92);
+  transform: translate(calc(-50% - 25px), -50%) translateZ(5px) scale(0.94) rotateY(5deg);
+}
+.ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="3"] {
+  transform: translate(calc(-50% + 90px), -50%) translateZ(60px) scale(1.06) rotateY(-4deg);
+  z-index: 30;
+  opacity: 1;
+  filter: brightness(1);
+  pointer-events: auto;
+}
+
+/* Mobile adjustments (< 768px) */
+@media (max-width: 767px) {
+  .ecosystem-stage {
+    min-height: 460px;
+    perspective: 900px;
+  }
+  
+  /* State 1 Mobile */
+  .ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="1"] {
+    transform: translate(-50%, -50%) scale(1) translateZ(30px);
+    opacity: 1;
+    z-index: 30;
+  }
+  .ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="2"] {
+    transform: translate(calc(-50% + 55px), -50%) scale(0.84) rotateY(-8deg);
+    opacity: 0.45;
+    z-index: 20;
+  }
+  .ecosystem-stage[data-active="thu-chi"] .ecosystem-card[data-slot="3"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(calc(-50% + 100px), -50%) scale(0.7);
+  }
+
+  /* State 2 Mobile */
+  .ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="1"] {
+    transform: translate(calc(-50% - 55px), -50%) scale(0.84) rotateY(8deg);
+    opacity: 0.45;
+    z-index: 20;
+  }
+  .ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="2"] {
+    transform: translate(-50%, -50%) scale(1) translateZ(30px);
+    opacity: 1;
+    z-index: 30;
+  }
+  .ecosystem-stage[data-active="thong-ke"] .ecosystem-card[data-slot="3"] {
+    transform: translate(calc(-50% + 55px), -50%) scale(0.84) rotateY(-8deg);
+    opacity: 0.45;
+    z-index: 20;
+  }
+
+  /* State 3 Mobile */
+  .ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="1"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(calc(-50% - 100px), -50%) scale(0.7);
+  }
+  .ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="2"] {
+    transform: translate(calc(-50% - 55px), -50%) scale(0.84) rotateY(8deg);
+    opacity: 0.45;
+    z-index: 20;
+  }
+  .ecosystem-stage[data-active="ngan-sach"] .ecosystem-card[data-slot="3"] {
+    transform: translate(-50%, -50%) scale(1) translateZ(30px);
+    opacity: 1;
+    z-index: 30;
+  }
+}
+
+
 
 /* ---------- Product mockups ---------- */
 .mock-screen-content { height: 100%; }

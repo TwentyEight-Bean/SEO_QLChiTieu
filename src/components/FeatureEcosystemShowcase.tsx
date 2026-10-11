@@ -69,7 +69,7 @@ export default function FeatureEcosystemShowcase() {
         </div>
 
         {/* Layer Selector Tabs */}
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
+        <div className="relative z-30 mt-10 flex flex-wrap justify-center gap-3">
           {LAYERS.map((layer) => (
             <button
               key={layer.id}
@@ -77,7 +77,7 @@ export default function FeatureEcosystemShowcase() {
               onClick={() => setActiveLayer(layer.id)}
               className={`cursor-pointer rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.16em] transition-all duration-300 ${
                 activeLayer === layer.id
-                  ? "bg-vermilion text-paper font-medium shadow-lg shadow-vermilion/40"
+                  ? "bg-vermilion text-paper font-medium shadow-lg shadow-vermilion/40 scale-105"
                   : "border border-paper/15 text-paper/60 hover:border-paper/30 hover:text-paper"
               }`}
             >
@@ -87,64 +87,31 @@ export default function FeatureEcosystemShowcase() {
         </div>
 
         {/* 2.5D Exploded Screens Stage */}
-        <div className="mt-16 grid items-center gap-12 lg:grid-cols-[1fr_420px]">
-          {/* Left: 2.5D Perspective Multi-Screen Fanout */}
-          <div className="relative flex min-h-[460px] items-center justify-center">
-            {/* Satellite 1: Thu chi */}
-            <div
-              onClick={() => setActiveLayer("thu-chi")}
-              className={`cursor-pointer transition-all duration-700 ease-out ${
-                activeLayer === "thu-chi"
-                  ? "relative z-30 scale-105 opacity-100"
-                  : "absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-10 scale-[0.82] -rotate-6 opacity-45 hover:opacity-85"
-              }`}
-            >
-              <DeviceMockup
-                screen="thu-chi"
-                alt="Màn hình thu chi"
-                perspective={activeLayer === "thu-chi" ? "hero" : "perspective-left"}
-                w="clamp(200px, 22vw, 260px)"
-                ambientGlow={activeLayer === "thu-chi" ? "vermilion" : "none"}
-              />
-            </div>
+        <div className="mt-14 grid items-center gap-12 lg:grid-cols-[1fr_420px]">
+          {/* Left: Strictly Ordered 3-Phone 3D Stage (Phone 1 -> 2 -> 3) */}
+          <div className="ecosystem-stage w-full overflow-visible" data-active={activeLayer}>
+            {LAYERS.map((layer, idx) => {
+              const slot = idx + 1; // strictly 1: Thu Chi, 2: Thống Kê, 3: Ngân Sách
+              const isActive = activeLayer === layer.id;
 
-            {/* Satellite 2: Thống kê */}
-            <div
-              onClick={() => setActiveLayer("thong-ke")}
-              className={`cursor-pointer transition-all duration-700 ease-out ${
-                activeLayer === "thong-ke"
-                  ? "relative z-30 scale-105 opacity-100"
-                  : activeLayer === "thu-chi"
-                  ? "absolute left-1/2 -translate-x-1/4 top-1/2 -translate-y-1/2 z-20 scale-[0.85] opacity-50 hover:opacity-85"
-                  : "absolute left-1/2 -translate-x-3/4 top-1/2 -translate-y-1/2 z-20 scale-[0.85] opacity-50 hover:opacity-85"
-              }`}
-            >
-              <DeviceMockup
-                screen="thong-ke"
-                alt="Màn hình thống kê"
-                perspective={activeLayer === "thong-ke" ? "hero" : "flat"}
-                w="clamp(200px, 22vw, 260px)"
-                ambientGlow={activeLayer === "thong-ke" ? "vermilion" : "none"}
-              />
-            </div>
-
-            {/* Satellite 3: Ngân sách */}
-            <div
-              onClick={() => setActiveLayer("ngan-sach")}
-              className={`cursor-pointer transition-all duration-700 ease-out ${
-                activeLayer === "ngan-sach"
-                  ? "relative z-30 scale-105 opacity-100"
-                  : "absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-10 scale-[0.82] rotate-6 opacity-45 hover:opacity-85"
-              }`}
-            >
-              <DeviceMockup
-                screen="ngan-sach"
-                alt="Màn hình ngân sách"
-                perspective={activeLayer === "ngan-sach" ? "hero" : "perspective-right"}
-                w="clamp(200px, 22vw, 260px)"
-                ambientGlow={activeLayer === "ngan-sach" ? "vermilion" : "none"}
-              />
-            </div>
+              return (
+                <div
+                  key={layer.id}
+                  data-slot={slot}
+                  onClick={() => setActiveLayer(layer.id)}
+                  className="ecosystem-card select-none"
+                  title={isActive ? undefined : `Xem ${layer.label}`}
+                >
+                  <DeviceMockup
+                    screen={layer.id}
+                    alt={`Màn hình ${layer.title}`}
+                    perspective="flat"
+                    w="clamp(210px, 23vw, 275px)"
+                    ambientGlow={isActive ? "vermilion" : "none"}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {/* Right: Focused Layer Detail Card */}
