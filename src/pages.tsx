@@ -8,6 +8,8 @@ import AnalyticsPerspectiveStage from "./components/AnalyticsPerspectiveStage";
 import TransactionFlowShowcase from "./components/TransactionFlowShowcase";
 import BudgetShowcase from "./components/BudgetShowcase";
 import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
+import DataExpansionSequence from "./components/DataExpansionSequence";
+import StatisticsVisualStories from "./components/StatisticsVisualStories";
 
 type FeatureId = (typeof FEATURES)[number]["id"];
 const HAS_STORE_LINKS = Boolean(STORES.appStore || STORES.googlePlay);
@@ -698,13 +700,14 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
 
 function StatisticsProductPage({ page }: { page: ProductPageDef }) {
   return (
-    <main className="min-h-svh bg-paper text-ink">
+    <main className="min-h-svh bg-paper text-ink overflow-x-hidden">
       <ProductHero page={page} screen="thong-ke" perspective="perspective-right" />
       <div id="mo-phong" className="scroll-mt-20">
         <StatisticsShowcase />
         <AnalyticsPerspectiveStage />
       </div>
-      <ProductContentBody page={page} />
+      <DataExpansionSequence />
+      <StatisticsVisualStories page={page} />
     </main>
   );
 }
