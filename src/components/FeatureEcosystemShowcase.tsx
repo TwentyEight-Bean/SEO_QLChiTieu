@@ -90,56 +90,58 @@ export default function FeatureEcosystemShowcase() {
         <div className="mt-16 grid items-center gap-12 lg:grid-cols-[1fr_420px]">
           {/* Left: 2.5D Perspective Multi-Screen Fanout */}
           <div className="relative flex min-h-[460px] items-center justify-center">
-            {/* Background Satellite Left: Thu chi */}
+            {/* Satellite 1: Thu chi */}
             <div
               onClick={() => setActiveLayer("thu-chi")}
-              className={`cursor-pointer transition-all duration-700 ${
+              className={`cursor-pointer transition-all duration-700 ease-out ${
                 activeLayer === "thu-chi"
-                  ? "z-30 scale-105 translate-x-0"
-                  : "absolute left-4 top-10 z-10 scale-90 -rotate-6 opacity-40 hover:opacity-75 md:left-12"
+                  ? "relative z-30 scale-105 opacity-100"
+                  : "absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-10 scale-[0.82] -rotate-6 opacity-45 hover:opacity-85"
               }`}
             >
               <DeviceMockup
                 screen="thu-chi"
                 alt="Màn hình thu chi"
                 perspective={activeLayer === "thu-chi" ? "hero" : "perspective-left"}
-                w="clamp(210px, 22vw, 270px)"
+                w="clamp(200px, 22vw, 260px)"
                 ambientGlow={activeLayer === "thu-chi" ? "vermilion" : "none"}
               />
             </div>
 
-            {/* Center Satellite: Thống kê */}
+            {/* Satellite 2: Thống kê */}
             <div
               onClick={() => setActiveLayer("thong-ke")}
-              className={`cursor-pointer transition-all duration-700 ${
+              className={`cursor-pointer transition-all duration-700 ease-out ${
                 activeLayer === "thong-ke"
-                  ? "z-30 scale-105 translate-x-0"
-                  : "absolute z-20 scale-90 opacity-40 hover:opacity-75"
+                  ? "relative z-30 scale-105 opacity-100"
+                  : activeLayer === "thu-chi"
+                  ? "absolute left-1/2 -translate-x-1/4 top-1/2 -translate-y-1/2 z-20 scale-[0.85] opacity-50 hover:opacity-85"
+                  : "absolute left-1/2 -translate-x-3/4 top-1/2 -translate-y-1/2 z-20 scale-[0.85] opacity-50 hover:opacity-85"
               }`}
             >
               <DeviceMockup
                 screen="thong-ke"
                 alt="Màn hình thống kê"
                 perspective={activeLayer === "thong-ke" ? "hero" : "flat"}
-                w="clamp(210px, 22vw, 270px)"
+                w="clamp(200px, 22vw, 260px)"
                 ambientGlow={activeLayer === "thong-ke" ? "vermilion" : "none"}
               />
             </div>
 
-            {/* Right Satellite: Ngân sách */}
+            {/* Satellite 3: Ngân sách */}
             <div
               onClick={() => setActiveLayer("ngan-sach")}
-              className={`cursor-pointer transition-all duration-700 ${
+              className={`cursor-pointer transition-all duration-700 ease-out ${
                 activeLayer === "ngan-sach"
-                  ? "z-30 scale-105 translate-x-0"
-                  : "absolute right-4 top-10 z-10 scale-90 rotate-6 opacity-40 hover:opacity-75 md:right-12"
+                  ? "relative z-30 scale-105 opacity-100"
+                  : "absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-10 scale-[0.82] rotate-6 opacity-45 hover:opacity-85"
               }`}
             >
               <DeviceMockup
                 screen="ngan-sach"
                 alt="Màn hình ngân sách"
                 perspective={activeLayer === "ngan-sach" ? "hero" : "perspective-right"}
-                w="clamp(210px, 22vw, 270px)"
+                w="clamp(200px, 22vw, 260px)"
                 ambientGlow={activeLayer === "ngan-sach" ? "vermilion" : "none"}
               />
             </div>

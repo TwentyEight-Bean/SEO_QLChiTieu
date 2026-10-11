@@ -116,14 +116,26 @@ export default function BudgetShowcase() {
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-paper/70">{currentStage.desc}</p>
 
-                {currentStage.warning && (
-                  <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-vermilion/40 bg-vermilion/10 p-3 text-xs text-paper/90">
-                    <span className="flex size-5 items-center justify-center rounded-full bg-vermilion text-[10px] text-paper font-bold">
-                      !
-                    </span>
-                    <span>Cảnh báo tinh tế bằng sắc đỏ son (Vermilion) — không gây áp lực hoảng sợ.</span>
-                  </div>
-                )}
+                <div
+                  className={`mt-4 flex items-center gap-2.5 rounded-xl border p-3 text-xs transition-all duration-300 ${
+                    currentStage.warning
+                      ? "border-vermilion/40 bg-vermilion/10 text-paper/90 shadow-sm"
+                      : "border-paper/10 bg-paper/5 text-paper/65"
+                  }`}
+                >
+                  <span
+                    className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                      currentStage.warning ? "bg-vermilion text-paper" : "bg-paper/20 text-paper/70"
+                    }`}
+                  >
+                    {currentStage.warning ? "!" : "✓"}
+                  </span>
+                  <span>
+                    {currentStage.warning
+                      ? "Cảnh báo tinh tế bằng sắc đỏ son (Vermilion) — không gây áp lực hoảng sợ."
+                      : "Duy trì nhịp chi tiêu này để đạt mục tiêu thặng dư an toàn cuối tháng."}
+                  </span>
+                </div>
               </div>
             </div>
 

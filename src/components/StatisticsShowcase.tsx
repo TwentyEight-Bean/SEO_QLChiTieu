@@ -366,7 +366,7 @@ export default function StatisticsShowcase() {
               {/* Category Breakdown Chips */}
               <div>
                 <span className="text-[11px] uppercase tracking-[0.2em] text-paper/50">Tỷ trọng nhóm chi</span>
-                <div className="mt-4 flex flex-col gap-2">
+                <div className="mt-4 flex flex-col gap-2 min-h-[160px]">
                   {data.categories.map((cat) => (
                     <div
                       key={cat.name}

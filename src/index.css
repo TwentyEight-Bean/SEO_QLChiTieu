@@ -37,10 +37,21 @@ body {
 :focus-visible { outline: 2px solid var(--color-vermilion); outline-offset: 3px; }
 
 /* ---------- Cinematic navigation ---------- */
+.site-header {
+  transition: background var(--dur-ui) var(--ease-cine), border-color var(--dur-ui) ease;
+}
+.site-header.is-scrolled {
+  mix-blend-mode: normal !important;
+  background: rgba(12, 10, 9, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(242, 236, 223, 0.12);
+}
 .nav-inner { transition: padding var(--dur-ui) var(--ease-cine); }
 .site-header.is-scrolled .nav-inner { padding-top: 0.8rem; padding-bottom: 0.8rem; }
 .brand-mark { transition: transform var(--dur-ui) var(--ease-cine), border-radius var(--dur-ui) ease; }
 .site-header.is-scrolled .brand-mark { transform: scale(0.65) rotate(45deg); border-radius: 0.2rem; }
+
 .menu-toggle {
   width: 2.75rem;
   height: 2.75rem;

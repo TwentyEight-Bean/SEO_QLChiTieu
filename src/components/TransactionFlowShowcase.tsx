@@ -151,7 +151,7 @@ export default function TransactionFlowShowcase() {
             <div className="mt-6 flex flex-col gap-6">
               {/* Step item 1 */}
               <div
-                className={`rounded-2xl border p-4.5 transition-all duration-300 ${
+                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 1
                     ? "border-vermilion bg-vermilion/10 text-paper"
                     : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
@@ -168,7 +168,7 @@ export default function TransactionFlowShowcase() {
 
               {/* Step item 2 */}
               <div
-                className={`rounded-2xl border p-4.5 transition-all duration-300 ${
+                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 2
                     ? "border-vermilion bg-vermilion/10 text-paper"
                     : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
@@ -185,7 +185,7 @@ export default function TransactionFlowShowcase() {
 
               {/* Step item 3 */}
               <div
-                className={`rounded-2xl border p-4.5 transition-all duration-300 ${
+                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 3
                     ? "border-vermilion bg-vermilion/10 text-paper"
                     : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
@@ -202,7 +202,7 @@ export default function TransactionFlowShowcase() {
 
               {/* Step item 4 */}
               <div
-                className={`rounded-2xl border p-4.5 transition-all duration-300 ${
+                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 4
                     ? "border-vermilion bg-vermilion/10 text-paper"
                     : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
