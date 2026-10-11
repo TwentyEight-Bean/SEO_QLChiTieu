@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Phone from "./Phone";
 import { APP, CATEGORIES, FEATURES, MONTHS, STORES, TREND } from "./config";
-import ContentPage, { ALL_PAGES } from "./pages";
+import ContentPage, { ALL_PAGES, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
 import { Link, usePath } from "./router";
 import { storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
 
 const d = (s: number): CSSProperties => ({ animationDelay: `${s}s` });
 const [F1, F2, F3] = FEATURES;
+const HAS_STORE_LINKS = Boolean(STORES.appStore || STORES.googlePlay);
+const PRIMARY_CTA_LABEL = HAS_STORE_LINKS ? "Tải ứng dụng" : "Nhận thông báo khi ra mắt";
+const SHORT_CTA_LABEL = HAS_STORE_LINKS ? "Tải ứng dụng" : "Nhận thông báo";
 
 /* ---------- shared ---------- */
 function Eyebrow({ n, children }: { n: string; children: React.ReactNode }) {
@@ -19,6 +22,46 @@ function Eyebrow({ n, children }: { n: string; children: React.ReactNode }) {
   );
 }
 
+function PrelaunchSignup({ source, compact = false }: { source: string; compact?: boolean }) {
+  const [submitted, setSubmitted] = useState(false);
+
+  return (
+    <form
+      className={`prelaunch-form ${compact ? "is-compact" : ""}`}
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSubmitted(true);
+        track("prelaunch_signup", { source });
+      }}
+    >
+      <div>
+        <label htmlFor={`prelaunch-email-${source}`}>Nhận thông báo khi Sổ Chi ra mắt</label>
+        <p id={`prelaunch-note-${source}`}>
+          Chúng tôi sẽ gửi một email ngắn khi ứng dụng sẵn sàng. Không có liên kết store giả, không làm phiền.
+        </p>
+      </div>
+      <div className="prelaunch-form-row">
+        <input
+          id={`prelaunch-email-${source}`}
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="Email của bạn"
+          aria-describedby={`prelaunch-note-${source}`}
+          required
+        />
+        <button type="submit">{submitted ? "Đã ghi nhận" : "Nhận thông báo"}</button>
+      </div>
+      {submitted && (
+        <p className="prelaunch-form-status" role="status">
+          Cảm ơn bạn. Sổ Chi sẽ báo khi bản phát hành chính thức sẵn sàng.
+        </p>
+      )}
+    </form>
+  );
+}
+
 function DownloadButtons({ source, event }: { source: string; event: "final_cta_click" | "store_click" }) {
   const links = [
     { kind: "appStore" as const, label: "App Store", sub: "Tải trên" },
@@ -26,11 +69,7 @@ function DownloadButtons({ source, event }: { source: string; event: "final_cta_
   ].filter((l) => STORES[l.kind]);
 
   if (!links.length) {
-    return (
-      <p className="max-w-sm border-l-2 border-vermilion pl-4 text-sm leading-relaxed opacity-80">
-        Liên kết App Store và Google Play chính thức sẽ xuất hiện tại đây ngay khi ứng dụng được phát hành.
-      </p>
-    );
+    return <PrelaunchSignup source={source} />;
   }
   return (
     <div className="flex flex-wrap gap-3">
@@ -60,16 +99,152 @@ const SCENES = [
   ["tai-ung-dung", "Bắt đầu"],
 ] as const;
 
+type MenuItemData = {
+  href: string;
+  label: string;
+  num: string;
+  tag: string;
+  desc: string;
+  badge: {
+    label: string;
+    value: string;
+    sub: string;
+    detail: string;
+  };
+};
+
+const MENU_ITEMS: MenuItemData[] = [
+  {
+    href: "/#trai-nghiem",
+    label: "Trải nghiệm",
+    num: "01",
+    tag: "Product Preview",
+    desc: "Khám phá phần trình diễn giao diện ghi chép tài chính tối giản, được dựng để giới thiệu trải nghiệm cốt lõi của Sổ Chi.",
+    badge: {
+      label: "Xem trước trải nghiệm",
+      value: "Minh họa",
+      sub: "Giao diện thu chi • Chuyển cảnh sản phẩm",
+      detail: "Màn hình mô phỏng giúp người dùng hiểu tinh thần sản phẩm trước khi ứng dụng phát hành.",
+    },
+  },
+  {
+    href: "/tinh-nang",
+    label: "Tính năng",
+    num: "02",
+    tag: "Core Capabilities",
+    desc: "Ba nhóm tính năng nền tảng cho quản lý chi tiêu cá nhân: theo dõi thu chi, xem thống kê và lập ngân sách.",
+    badge: {
+      label: "Bộ tính năng cốt lõi",
+      value: "3 nhóm",
+      sub: "Thu chi • Thống kê • Ngân sách",
+      detail: "Tập trung vào những hành động quan trọng nhất để người dùng bắt đầu theo dõi tiền rõ ràng hơn.",
+    },
+  },
+  {
+    href: "/quan-ly-thu-chi",
+    label: "Quản lý thu chi",
+    num: "03",
+    tag: "Cashflow Tracking",
+    desc: "Ghi lại khoản thu và khoản chi trong một cấu trúc dễ nhìn, giúp người dùng biết dòng tiền đang đi đâu.",
+    badge: {
+      label: "Nhật ký dòng tiền",
+      value: "Rõ ràng",
+      sub: "Khoản thu • Khoản chi • Giao dịch gần",
+      detail: "Nội dung tập trung vào thói quen ghi chép đều đặn, không hứa các chỉ số tốc độ chưa được kiểm chứng.",
+    },
+  },
+  {
+    href: "/thong-ke-tai-chinh",
+    label: "Thống kê tài chính",
+    num: "04",
+    tag: "Analytics & Trends",
+    desc: "Báo cáo phân tích trực quan với biểu đồ thanh thoát, giúp bạn thấu hiểu xu hướng tiêu dùng theo thời gian.",
+    badge: {
+      label: "Phân tích xu hướng",
+      value: "Trực quan",
+      sub: "Cơ cấu nhóm chi • Biểu đồ kỳ hạn",
+      detail: "Biến những con số khô khan thành tín hiệu rõ ràng để điều chỉnh kế hoạch.",
+    },
+  },
+  {
+    href: "/lap-ngan-sach",
+    label: "Lập ngân sách",
+    num: "05",
+    tag: "Budget Planning",
+    desc: "Theo dõi mức đã dùng theo từng nhóm chi tiêu để người dùng chủ động điều chỉnh trước khi vượt kế hoạch.",
+    badge: {
+      label: "Kế hoạch chi tiêu",
+      value: "Chủ động",
+      sub: "Hạn mức nhóm • Theo dõi mức đã dùng",
+      detail: "Dựa trên chi tiêu thực tế thay vì những con số lý tưởng xa vời.",
+    },
+  },
+  {
+    href: "/blog",
+    label: "Blog",
+    num: "06",
+    tag: "Editorial & Insights",
+    desc: "Chia sẻ tri thức quản lý tài chính cá nhân, kinh nghiệm tích lũy và góc nhìn về lối sống chi tiêu có ý thức.",
+    badge: {
+      label: "Bài viết chuyên đề",
+      value: "Chuyên sâu",
+      sub: "Tư duy tiền tệ • Mẹo tiết kiệm",
+      detail: "Góc nhìn tĩnh tại, hướng dẫn thực tế từ các bài viết tuyển chọn.",
+    },
+  },
+  {
+    href: "/gioi-thieu",
+    label: "Giới thiệu",
+    num: "07",
+    tag: "About & Philosophy",
+    desc: "Triết lý sản phẩm hướng đến sự rõ ràng, bình tĩnh và tôn trọng dữ liệu cá nhân của người dùng.",
+    badge: {
+      label: "Triết lý thương hiệu",
+      value: "Đơn giản",
+      sub: "Rõ ràng • Tôn trọng dữ liệu",
+      detail: "Thiết kế phục vụ con người, mang lại cảm giác bình tâm trong tài chính.",
+    },
+  },
+  {
+    href: "/cau-hoi-thuong-gap",
+    label: "Câu hỏi thường gặp",
+    num: "08",
+    tag: "Help & Support",
+    desc: "Tổng hợp các câu hỏi cơ bản về cách ghi chép, phân loại khoản chi và chuẩn bị sử dụng khi sản phẩm ra mắt.",
+    badge: {
+      label: "Trung tâm trợ giúp",
+      value: "Cơ bản",
+      sub: "Ghi chép • Phân loại • Ngân sách",
+      detail: "Các câu hỏi được viết theo hướng hỗ trợ người dùng mới, không giả định tính năng chưa công bố.",
+    },
+  },
+];
+
 function Nav({ showJourney }: { showJourney: boolean }) {
   const [activeScene, setActiveScene] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(0);
+  const currentPath = usePath();
   const progress = useRef<HTMLSpanElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const menuPanel = useRef<HTMLDivElement>(null);
   const links = [
     ["/#trai-nghiem", "Trải nghiệm"],
     ["/tinh-nang", "Tính năng"],
     ["/#du-lieu", "Số liệu"],
   ];
+
+  useEffect(() => {
+    if (menuOpen) {
+      const idx = MENU_ITEMS.findIndex(
+        (item) => item.href === currentPath || (item.href === "/#trai-nghiem" && currentPath === "/")
+      );
+      if (idx >= 0) setHoveredIndex(idx);
+    }
+  }, [menuOpen, currentPath]);
+
+  const activeMenuItem = MENU_ITEMS[hoveredIndex] ?? MENU_ITEMS[0];
 
   useEffect(() => {
     let frame = 0;
@@ -103,14 +278,37 @@ function Nav({ showJourney }: { showJourney: boolean }) {
   useEffect(() => {
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+    const previousFocus = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : menuButton.current;
+    const focusable = () => Array.from(menuPanel.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') ?? []).filter((el) => el.offsetParent !== null);
+    const focusFirst = () => {
+      (focusable()[0] ?? menuPanel.current)?.focus();
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", close);
+    window.addEventListener("keydown", onKey);
+    requestAnimationFrame(focusFirst);
+    window.setTimeout(focusFirst, 80);
     return () => {
       document.body.style.overflow = previous;
-      window.removeEventListener("keydown", close);
+      window.removeEventListener("keydown", onKey);
+      (previousFocus ?? menuButton.current)?.focus();
     };
   }, [menuOpen]);
 
@@ -134,53 +332,221 @@ function Nav({ showJourney }: { showJourney: boolean }) {
             onClick={() => track("hero_download_click", { source: "nav" })}
             className="hidden rounded-full border border-white/70 px-5 py-2 text-sm transition-colors duration-200 hover:bg-white hover:text-black md:block"
           >
-            Tải ứng dụng
+            {PRIMARY_CTA_LABEL}
           </a>
           <button
+            ref={menuButton}
             type="button"
             aria-label={menuOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
+            aria-controls="site-menu"
             onClick={() => setMenuOpen((open) => !open)}
-            className={`menu-toggle md:hidden ${menuOpen ? "is-open" : ""}`}
+            className={`menu-toggle ${menuOpen ? "is-open" : ""}`}
           >
             <span /><span />
           </button>
         </nav>
         <span className="scroll-progress" aria-hidden><span ref={progress} /></span>
       </header>
-      <div id="mobile-menu" className={`mobile-menu md:hidden ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
-        <div className="mobile-menu-orbit" aria-hidden />
-        <nav aria-label="Điều hướng di động" className="mobile-menu-inner">
-          <p><span>目次</span> Mục lục</p>
-          <ol>
-            {[
-              ["/#trai-nghiem", "Trải nghiệm"],
-              ["/tinh-nang", "Tính năng"],
-              ["/#du-lieu", "Số liệu"],
-              ["/gioi-thieu", "Giới thiệu"],
-              ["/cau-hoi-thuong-gap", "Câu hỏi thường gặp"],
-            ].map(([href, label], index) => (
-              <li key={href}>
-                <Link href={href} onClick={() => setMenuOpen(false)}>
-                  <span>0{index + 1}</span>
-                  {label}
-                  <i aria-hidden>↗</i>
+      <div id="site-menu" ref={menuPanel} role="dialog" aria-modal="true" tabIndex={-1} className={`mobile-menu site-menu ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
+        {/* MOBILE VIEW (< 1024px) - Preserved exact original mobile structure and classes */}
+        <div className="lg:hidden h-full">
+          <div className="mobile-menu-orbit" aria-hidden />
+          <nav aria-label="Điều hướng toàn trang" className="mobile-menu-inner">
+            <p><span>目次</span> Mục lục</p>
+            <ol>
+              {MENU_ITEMS.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} onClick={() => setMenuOpen(false)}>
+                    <span>{item.num}</span>
+                    {item.label}
+                    <i aria-hidden>↗</i>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+            <Link
+              href="/#tai-ung-dung"
+              onClick={() => {
+                setMenuOpen(false);
+                track("hero_download_click", { source: "mobile_menu" });
+              }}
+              className="mobile-menu-cta"
+            >
+              {PRIMARY_CTA_LABEL} <span aria-hidden>→</span>
+            </Link>
+          </nav>
+        </div>
+
+        {/* DESKTOP FULLSCREEN EDITORIAL NAVIGATION (>= 1024px) */}
+        <div className="hidden lg:flex desktop-menu-layout h-full flex-col justify-between max-w-[1500px] w-full mx-auto px-8 xl:px-16 pt-24 pb-7">
+          {/* Top Editorial Meta Bar */}
+          <div className="flex items-center justify-between border-b border-paper/[0.08] pb-3.5 font-mono text-[11px] uppercase tracking-[0.25em] text-paper/40">
+            <div className="flex items-center gap-3">
+              <span className="text-vermilion font-display text-sm tracking-normal">目次</span>
+              <span className="h-px w-6 bg-paper/20" />
+              <span>MỤC LỤC & ĐIỀU HƯỚNG</span>
+              <span className="text-paper/20">•</span>
+              <span className="text-paper/50">08 PHÂN HỆ</span>
+            </div>
+            <div className="flex items-center gap-4 text-paper/35">
+              <span>BẤM [ESC] HOẶC TAB ĐỂ DUYỆT</span>
+              <span className="text-paper/20">•</span>
+              <span>SỔ CHI STUDIO</span>
+            </div>
+          </div>
+
+          {/* Two-Column Editorial Layout */}
+          <div className="grid grid-cols-12 gap-10 xl:gap-14 items-center my-auto py-2">
+            {/* LEFT COLUMN: 58% width (7 of 12 columns) */}
+            <div className="col-span-7 flex flex-col justify-center">
+              <ol className="flex flex-col border-y border-paper/[0.08] divide-y divide-paper/[0.06]" role="list">
+                {MENU_ITEMS.map((item, index) => {
+                  const isHovered = hoveredIndex === index;
+                  const isCurrent = currentPath === item.href || (item.href === "/#trai-nghiem" && currentPath === "/");
+                  return (
+                    <li key={item.href} className="desktop-menu-item">
+                      <Link
+                        href={item.href}
+                        onClick={() => setMenuOpen(false)}
+                        onMouseEnter={() => setHoveredIndex(index)}
+                        onFocus={() => setHoveredIndex(index)}
+                        className={`group flex items-center justify-between py-2.5 xl:py-3 px-3.5 -mx-3.5 rounded-xl transition-all duration-300 ${
+                          isHovered
+                            ? "bg-white/[0.035]"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-5 xl:gap-7 min-w-0">
+                          <span
+                            className={`font-mono text-xs xl:text-sm tracking-widest transition-colors duration-300 ${
+                              isHovered || isCurrent ? "text-vermilion font-semibold" : "text-paper/35 group-hover:text-vermilion"
+                            }`}
+                          >
+                            {item.num}
+                          </span>
+                          <span
+                            className={`font-display text-xl xl:text-2xl 2xl:text-[1.75rem] font-light tracking-wide transition-all duration-300 whitespace-nowrap truncate ${
+                              isHovered
+                                ? "translate-x-2 text-vermilion"
+                                : isCurrent
+                                ? "text-paper group-hover:text-vermilion group-hover:translate-x-2"
+                                : "text-paper/90 group-hover:text-vermilion group-hover:translate-x-2"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0 ml-4">
+                          {isCurrent && (
+                            <span className="hidden 2xl:inline-block text-[10px] tracking-widest uppercase font-mono px-2 py-0.5 rounded-full border border-vermilion/30 text-vermilion/90 bg-vermilion/10">
+                              Đang xem
+                            </span>
+                          )}
+                          <span
+                            aria-hidden
+                            className={`font-sans text-sm xl:text-base transition-all duration-300 ${
+                              isHovered
+                                ? "opacity-100 text-vermilion translate-x-1 -translate-y-0.5"
+                                : "opacity-25 text-paper group-hover:opacity-100 group-hover:text-vermilion group-hover:translate-x-1 group-hover:-translate-y-0.5"
+                            }`}
+                          >
+                            ↗
+                          </span>
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+
+            {/* RIGHT COLUMN: 42% width (5 of 12 columns) */}
+            <div className="col-span-5 relative desktop-menu-preview flex flex-col justify-between min-h-[440px] xl:min-h-[480px] pl-4 xl:pl-8">
+              {/* Decorative Circular Graphic Composition in Background */}
+              <div className="absolute -inset-10 pointer-events-none flex items-center justify-center overflow-hidden" aria-hidden>
+                {/* Outer subtle orbit circle */}
+                <div className="w-[460px] xl:w-[540px] aspect-square rounded-full border border-paper/[0.07] desktop-orbit-spin" />
+                {/* Middle vermilion accent orbit */}
+                <div className="absolute w-[340px] xl:w-[400px] aspect-square rounded-full border border-vermilion/[0.18]" />
+                {/* Inner calm orbit circle */}
+                <div className="absolute w-[210px] xl:w-[250px] aspect-square rounded-full border border-paper/[0.04]" />
+                {/* Soft ambient vermilion glow */}
+                <div className="absolute w-[280px] h-[280px] rounded-full bg-vermilion/[0.04] blur-3xl" />
+              </div>
+
+              {/* Contextual description & label for hovered item */}
+              <div className="relative z-10 space-y-4">
+                <div>
+                  <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-white/[0.03] border border-paper/[0.09] backdrop-blur-md mb-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-vermilion animate-pulse" />
+                    <span className="font-mono text-[10px] xl:text-[11px] tracking-[0.2em] uppercase text-paper/70">
+                      {activeMenuItem.num} / 08 • {activeMenuItem.tag}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-2xl xl:text-3xl font-light text-paper tracking-wide">
+                    {activeMenuItem.label}
+                  </h3>
+                  <p className="mt-2 text-xs xl:text-sm leading-relaxed text-paper/70 font-sans max-w-sm">
+                    {activeMenuItem.desc}
+                  </p>
+                </div>
+
+                {/* Small visual/thumbnail/product reference card */}
+                <div className="relative overflow-hidden rounded-2xl border border-paper/[0.1] bg-white/[0.025] backdrop-blur-md p-4 xl:p-5 shadow-xl shadow-black/20">
+                  <div className="flex items-center justify-between border-b border-paper/[0.08] pb-2.5 text-xs font-mono">
+                    <span className="text-paper/50 flex items-center gap-2 text-[11px]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-vermilion" />
+                      {activeMenuItem.badge.label}
+                    </span>
+                    <span className="text-vermilion font-medium px-2 py-0.5 rounded bg-vermilion/10 text-[10px] xl:text-[11px]">
+                      {activeMenuItem.badge.value}
+                    </span>
+                  </div>
+                  <div className="pt-2.5">
+                    <p className="text-xs xl:text-sm font-medium text-paper flex items-center gap-2">
+                      {activeMenuItem.badge.sub}
+                    </p>
+                    <p className="mt-1 text-[11px] xl:text-xs leading-relaxed text-paper/60 font-sans">
+                      {activeMenuItem.badge.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compact Premium CTA at lower right */}
+              <div className="relative z-10 pt-4 border-t border-paper/[0.08] flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-paper/40">Sẵn sàng trải nghiệm?</p>
+                  <p className="text-xs text-paper/70 font-sans">{HAS_STORE_LINKS ? "Dành cho iOS & Android" : "Đăng ký nhận tin ra mắt"}</p>
+                </div>
+                <Link
+                  href="/#tai-ung-dung"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    track("hero_download_click", { source: "desktop_menu" });
+                  }}
+                  className="group inline-flex items-center gap-2.5 rounded-full bg-vermilion px-5 py-2.5 text-xs font-medium uppercase tracking-wider text-paper shadow-md shadow-vermilion/20 transition-all duration-300 hover:bg-[#bd321c] hover:shadow-lg hover:shadow-vermilion/30 hover:scale-[1.03] active:scale-[0.98]"
+                >
+                  <span>{PRIMARY_CTA_LABEL}</span>
+                  <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </Link>
-              </li>
-            ))}
-          </ol>
-          <Link
-            href="/#tai-ung-dung"
-            onClick={() => {
-              setMenuOpen(false);
-              track("hero_download_click", { source: "mobile_menu" });
-            }}
-            className="mobile-menu-cta"
-          >
-            Tải ứng dụng <span aria-hidden>→</span>
-          </Link>
-        </nav>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Editorial Sub-bar */}
+          <div className="flex items-center justify-between border-t border-paper/[0.08] pt-3 font-mono text-[11px] text-paper/35">
+            <div>
+              <span>© 2026 SỔ CHI • BẢO MẬT TUYỆT ĐỐI TRÊN THIẾT BỊ</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span>PHIÊN BẢN 1.0</span>
+              <span className="text-paper/20">•</span>
+              <span>THIẾT KẾ THỦ CÔNG</span>
+            </div>
+          </div>
+        </div>
       </div>
       {showJourney && (
         <nav className="scene-rail" aria-label="Các phân cảnh">
@@ -204,9 +570,9 @@ function Nav({ showJourney }: { showJourney: boolean }) {
         <a
           href="/#tai-ung-dung"
           onClick={() => track("hero_download_click", { source: "sticky_mobile" })}
-          className="fixed inset-x-4 bottom-4 z-50 flex min-h-12 items-center justify-center rounded-full bg-vermilion text-sm font-medium text-paper shadow-xl md:hidden"
+          className="mobile-sticky-cta fixed inset-x-4 z-50 mx-auto flex min-h-12 max-w-sm items-center justify-center rounded-full bg-vermilion text-sm font-medium text-paper shadow-xl md:hidden"
         >
-          Tải ứng dụng
+          {SHORT_CTA_LABEL}
         </a>
       )}
     </>
@@ -236,7 +602,7 @@ function Hero() {
               onClick={() => track("hero_download_click", { source: "hero" })}
               className="flex min-h-14 items-center rounded-full bg-vermilion px-8 font-medium text-paper transition-transform duration-200 hover:scale-[1.03]"
             >
-              Tải ứng dụng
+              {PRIMARY_CTA_LABEL}
             </a>
             <a href="#trai-nghiem" className="flex min-h-14 items-center gap-2 px-3 text-paper/80 transition-colors duration-200 hover:text-paper">
               Khám phá trải nghiệm <span aria-hidden>↓</span>
@@ -451,8 +817,22 @@ function DataInMotion() {
 function Experience() {
   const [i, setI] = useState(0);
   const f = FEATURES[i];
+  const featureStyle = {
+    "--feature-shift": `${(i - 1) * 14}px`,
+    "--feature-tilt": `${(1 - i) * 1.6}deg`,
+    "--feature-scale": i === 1 ? 1.035 : 1,
+    "--feature-orbit-scale": i === 1 ? 1.04 : 0.98,
+    "--feature-glow-x": `${50 + (i - 1) * 8}%`,
+  } as CSSProperties;
+
+  const selectFeature = (index: number, id: string) => {
+    setI(index);
+    track("product_demo_interaction", { feature: id });
+    track("feature_view", { feature: id });
+  };
+
   return (
-    <section id="demo" data-scene aria-labelledby="h-s5" className="washi relative bg-paper px-6 py-28 text-ink md:px-10 md:py-40">
+    <section id="demo" data-scene aria-labelledby="h-s5" className="product-demo washi relative bg-paper px-6 py-28 text-ink md:px-10 md:py-40" data-feature={f.id}>
       <div className="mx-auto grid max-w-[1300px] items-center gap-16 md:grid-cols-[1fr_auto_1fr]">
         <div>
           <Eyebrow n="五">Trải nghiệm sản phẩm</Eyebrow>
@@ -465,7 +845,8 @@ function Experience() {
                 key={x.id}
                 role="tab"
                 aria-selected={k === i}
-                onClick={() => { setI(k); track("product_demo_interaction", { feature: x.id }); track("feature_view", { feature: x.id }); }}
+                aria-controls="feature-panel"
+                onClick={() => selectFeature(k, x.id)}
                 className="group flex min-h-16 w-full items-center gap-5 border-b border-ink/15 py-4 text-left transition-colors duration-200"
               >
                 <span className={`font-display text-sm tabular-nums transition-colors ${k === i ? "text-vermilion" : "text-ink/40"}`}>0{k + 1}</span>
@@ -474,12 +855,13 @@ function Experience() {
               </button>
             ))}
           </div>
-          <p key={f.id} role="tabpanel" className="hero-fade mt-6 max-w-md leading-relaxed text-ink/70" style={{ animationDuration: "500ms" }}>{f.desc}</p>
+          <p key={f.id} id="feature-panel" role="tabpanel" className="feature-copy-motion mt-6 max-w-md leading-relaxed text-ink/70">{f.desc}</p>
         </div>
 
-        <div className="relative order-first flex justify-center md:order-none">
-          <div aria-hidden className="absolute top-1/2 size-[min(70vw,440px)] -translate-y-1/2 rounded-full bg-vermilion/90" />
-          <div key={f.id} className="hero-fade relative" style={{ animationDuration: "600ms" }}>
+        <div className="relative order-first flex justify-center md:order-none" style={featureStyle}>
+          <div aria-hidden className="demo-orbit absolute top-1/2 size-[min(70vw,440px)] -translate-y-1/2 rounded-full bg-vermilion/90" />
+          <div className="demo-phone-wrap relative">
+            <span aria-hidden className="demo-light" />
             <Phone src={f.shot} screen={f.id} alt={`${f.title} trong ứng dụng ${APP.name}`} w="clamp(200px, 26vw, 300px)" />
           </div>
         </div>
@@ -507,7 +889,7 @@ function FinalReveal() {
             <span className="size-3 rounded-full bg-vermilion" aria-hidden /> {APP.name}
           </div>
           <h2 id="h-s6" className="mt-5 font-display text-[clamp(2.2rem,5.4vw,5rem)] font-light leading-[1.05]">
-            Hiểu rõ tiền của bạn.<br /><em className="text-vermilion">Bắt đầu từ hôm nay.</em>
+            Hiểu rõ tiền của bạn.<br /><em className="text-vermilion">{HAS_STORE_LINKS ? "Bắt đầu từ hôm nay." : "Nhận tin khi ra mắt."}</em>
           </h2>
           <div className="mt-8"><DownloadButtons source="final" event="final_cta_click" /></div>
         </div>
@@ -528,7 +910,7 @@ function Footer() {
         </div>
         <nav aria-label="Liên kết chân trang" className="grid gap-3 text-sm text-paper/70 sm:grid-cols-2 sm:gap-x-12">
           {ALL_PAGES.map((p) => <Link key={p.path} href={p.path} className="hover:text-paper">{p.nav}</Link>)}
-          <a href="/#tai-ung-dung" className="hover:text-paper">Tải ứng dụng</a>
+          <a href="/#tai-ung-dung" className="hover:text-paper">{PRIMARY_CTA_LABEL}</a>
         </nav>
       </div>
       <p className="mx-auto mt-10 max-w-[1300px] text-xs text-paper/40">© {new Date().getFullYear()} {APP.name}. Số liệu trong biểu đồ chỉ mang tính minh họa.</p>
@@ -538,31 +920,58 @@ function Footer() {
 
 export default function App() {
   const path = usePath();
-  const page = ALL_PAGES.find((p) => p.path === path);
+  const page = getRoute(path);
 
   useEffect(() => {
-    document.documentElement.lang = "vi";
-    document.title = page ? `${page.title} | ${APP.name}` : `${APP.name} — Ứng dụng quản lý chi tiêu cá nhân`;
-    const desc = page
-      ? page.description
-      : "Ứng dụng quản lý chi tiêu cá nhân: theo dõi thu chi, xem thống kê tài chính và lập ngân sách trong một trải nghiệm đơn giản.";
-    let m = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!m) {
-      m = document.createElement("meta");
-      m.name = "description";
-      document.head.appendChild(m);
-    }
-    m.content = desc;
-    if (APP.siteUrl) {
-      let c = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-      if (!c) {
-        c = document.createElement("link");
-        c.rel = "canonical";
-        document.head.appendChild(c);
+    const meta = getPageMeta(page);
+    const origin = APP.siteUrl || window.location.origin;
+    const canonicalPath = getCanonicalPath(page, path);
+    const canonicalUrl = `${origin}${canonicalPath === "/" ? "/" : canonicalPath}`;
+
+    const setNamedMeta = (name: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.name = name;
+        document.head.appendChild(tag);
       }
-      c.href = APP.siteUrl + (page ? page.path : "/");
+      tag.content = content;
+    };
+
+    const setPropertyMeta = (property: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute("property", property);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+
+    document.documentElement.lang = "vi";
+    document.title = meta.title;
+    setNamedMeta("description", meta.description);
+    setPropertyMeta("og:title", meta.title);
+    setPropertyMeta("og:description", meta.description);
+    setPropertyMeta("og:type", page?.kind === "article" ? "article" : "website");
+    setPropertyMeta("og:url", canonicalUrl);
+    setNamedMeta("twitter:card", "summary");
+
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
     }
-  }, [page]);
+    canonical.href = canonicalUrl;
+
+    document.querySelector<HTMLScriptElement>('script[data-seo-json="true"]')?.remove();
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.dataset.seoJson = "true";
+    script.textContent = JSON.stringify(getStructuredData(page, origin));
+    document.head.appendChild(script);
+  }, [page, path]);
 
   useEffect(() => {
     if (!page && path === "/" && window.location.hash) {

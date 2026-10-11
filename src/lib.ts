@@ -6,7 +6,8 @@ export type EventName =
   | "store_click"
   | "feature_view"
   | "product_demo_interaction"
-  | "final_cta_click";
+  | "final_cta_click"
+  | "prelaunch_signup";
 
 export function track(name: EventName, params: Record<string, string> = {}) {
   const w = window as unknown as { dataLayer?: unknown[] };

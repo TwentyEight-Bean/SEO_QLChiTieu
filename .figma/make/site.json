@@ -1,7 +1,9 @@
 {
+  "title": "Sổ Chi — Ứng dụng quản lý chi tiêu cá nhân",
   "description": "Showcases a Vietnamese personal expense management app through a premium cinematic website, enhancing user engagement and driving app installations.",
+  "language": "vi",
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,

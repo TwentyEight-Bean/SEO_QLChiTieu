@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 export type PhoneScreen = "thu-chi" | "thong-ke" | "ngan-sach";
 
@@ -9,6 +9,14 @@ type Props = {
   w: string;
   className?: string;
   children?: ReactNode;
+};
+
+type ScreenLayer = {
+  key: number;
+  src: string;
+  screen: PhoneScreen;
+  alt: string;
+  exiting?: boolean;
 };
 
 const transactions = [
@@ -173,19 +181,58 @@ function ProductScreen({ screen, alt }: { screen: PhoneScreen; alt: string }) {
   );
 }
 
-export default function Phone({ src, screen, alt, w, className = "", children }: Props) {
+function PhoneScreenLayer({ layer, initial }: { layer: ScreenLayer; initial: boolean }) {
   const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [layer.src]);
+
+  return (
+    <div className={`phone-layer ${initial ? "" : layer.exiting ? "is-exiting" : "is-entering"}`}>
+      <ProductScreen screen={layer.screen} alt={layer.alt} />
+      <img
+        src={layer.src}
+        alt={layer.alt}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        className={`absolute inset-0 z-[2] h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </div>
+  );
+}
+
+export default function Phone({ src, screen, alt, w, className = "", children }: Props) {
+  const nextLayerKey = useRef(0);
+  const [layers, setLayers] = useState<ScreenLayer[]>(() => [{ key: 0, src, screen, alt }]);
+
+  useEffect(() => {
+    const key = ++nextLayerKey.current;
+    const cleanupMs = window.matchMedia("(max-width: 767px)").matches ? 420 : 720;
+
+    setLayers((currentLayers) => {
+      const active = currentLayers[currentLayers.length - 1];
+      if (active?.src === src && active.screen === screen && active.alt === alt) return currentLayers;
+
+      return [
+        ...(active ? [{ ...active, exiting: true }] : []),
+        { key, src, screen, alt },
+      ];
+    });
+
+    const timeout = window.setTimeout(() => {
+      setLayers((currentLayers) => currentLayers.filter((layer) => !layer.exiting));
+    }, cleanupMs);
+
+    return () => window.clearTimeout(timeout);
+  }, [alt, screen, src]);
+
   return (
     <div className={`phone ${className}`} style={{ "--w": w } as CSSProperties}>
       <div className="phone-screen">
-        <ProductScreen screen={screen} alt={alt} />
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-          className={`absolute inset-0 z-[2] h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
-        />
+        {layers.map((layer) => (
+          <PhoneScreenLayer key={layer.key} layer={layer} initial={layer.key === 0 && layers.length === 1} />
+        ))}
         <span className="phone-island" />
         <span className="phone-glass" aria-hidden />
         <span className="phone-dim" />
