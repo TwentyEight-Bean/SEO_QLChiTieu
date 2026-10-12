@@ -69,13 +69,13 @@ export default function FeatureEcosystemShowcase() {
         </div>
 
         {/* Layer Selector Tabs */}
-        <div className="relative z-30 mt-10 flex flex-wrap justify-center gap-3">
+        <div className="relative z-30 mt-10 flex flex-wrap justify-center gap-2.5 md:gap-3">
           {LAYERS.map((layer) => (
             <button
               key={layer.id}
               type="button"
               onClick={() => setActiveLayer(layer.id)}
-              className={`cursor-pointer rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.16em] transition-all duration-300 ${
+              className={`flex min-h-11 cursor-pointer items-center rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.16em] transition-all duration-300 ${
                 activeLayer === layer.id
                   ? "bg-vermilion text-paper font-medium shadow-lg shadow-vermilion/40 scale-105"
                   : "border border-paper/15 text-paper/60 hover:border-paper/30 hover:text-paper"
@@ -87,9 +87,9 @@ export default function FeatureEcosystemShowcase() {
         </div>
 
         {/* 2.5D Exploded Screens Stage */}
-        <div className="mt-14 grid items-center gap-12 lg:grid-cols-[1fr_420px]">
+        <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1fr_420px]">
           {/* Left: Strictly Ordered 3-Phone 3D Stage (Phone 1 -> 2 -> 3) */}
-          <div className="ecosystem-stage w-full overflow-visible" data-active={activeLayer}>
+          <div className="ecosystem-stage w-full overflow-hidden md:overflow-visible select-none" data-active={activeLayer}>
             {LAYERS.map((layer, idx) => {
               const slot = idx + 1; // strictly 1: Thu Chi, 2: Thống Kê, 3: Ngân Sách
               const isActive = activeLayer === layer.id;
@@ -106,7 +106,7 @@ export default function FeatureEcosystemShowcase() {
                     screen={layer.id}
                     alt={`Màn hình ${layer.title}`}
                     perspective="flat"
-                    w="clamp(210px, 23vw, 275px)"
+                    w="clamp(220px, 24vw, 280px)"
                     ambientGlow={isActive ? "vermilion" : "none"}
                   />
                 </div>
@@ -115,7 +115,7 @@ export default function FeatureEcosystemShowcase() {
           </div>
 
           {/* Right: Focused Layer Detail Card */}
-          <div className="rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1c1613] to-[#0f0c0b] p-8 shadow-2xl">
+          <div className="rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1c1613] to-[#0f0c0b] p-6 shadow-2xl md:p-8">
             <span className="text-xs uppercase tracking-[0.24em] text-vermilion font-medium">{current.tag}</span>
             <h3 className="mt-3 font-display text-3xl font-light text-paper md:text-4xl">
               {current.title}

@@ -621,7 +621,7 @@ function ProductHero({ page, screen, perspective }: { page: ProductPageDef; scre
             <span>{page.nav}</span>
           </nav>
           <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{page.eyebrow}</p>
-          <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.7rem,7vw,6.4rem)] font-light leading-[1.02]">{page.h1}</h1>
+          <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.15rem,6.2vw,5.5rem)] font-light leading-[1.08] [text-wrap:balance]">{page.h1}</h1>
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/70">{page.intro}</p>
           <div className="mt-9 flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-paper/65">
             {page.metrics.map((metric) => <span key={metric} className="rounded-full border border-paper/20 px-4 py-2">{metric}</span>)}
@@ -653,8 +653,31 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
 
   return (
     <section className="washi px-6 py-20 md:px-10 md:py-28">
-      <div className="mx-auto grid max-w-[1200px] gap-14 lg:grid-cols-[260px_minmax(0,780px)] lg:justify-between">
-        <aside className="secondary-toc">
+      <div className="mx-auto grid max-w-[1200px] gap-8 lg:gap-14 lg:grid-cols-[260px_minmax(0,780px)] lg:justify-between">
+        {/* Mobile Collapsible TOC */}
+        <details className="block lg:hidden rounded-2xl border border-ink/15 bg-paper/60 p-4 shadow-sm group">
+          <summary className="flex cursor-pointer items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-ink/70 select-none">
+            <span className="flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-vermilion" />
+              Mục lục nội dung ({tocItems.length} mục)
+            </span>
+            <span className="text-xs transition-transform duration-200 group-open:rotate-180">▼</span>
+          </summary>
+          <nav aria-label="Mục lục (di động)" className="mt-3 divide-y divide-ink/10 border-t border-ink/10 pt-2 text-sm">
+            {tocItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="flex min-h-11 items-center py-2 text-ink/80 transition-colors hover:text-vermilion"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </details>
+
+        {/* Desktop Sticky TOC */}
+        <aside className="secondary-toc hidden lg:block">
           <p>Trong trang</p>
           <nav aria-label="Mục lục">
             {tocItems.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
@@ -894,15 +917,55 @@ function ArticlePage({ article }: { article: ArticleDef }) {
             <span>{article.nav}</span>
           </nav>
           <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{article.category}</p>
-          <h1 className="mt-5 font-display text-[clamp(2.6rem,7vw,6rem)] font-light leading-[1.03]">{article.title}</h1>
+          <h1 className="mt-5 font-display text-[clamp(2.15rem,6.2vw,5.5rem)] font-light leading-[1.08] [text-wrap:balance]">{article.title}</h1>
           <p className="mt-8 max-w-3xl text-lg leading-relaxed text-paper/70">{article.intro}</p>
           <ReadingMeta article={article} />
         </div>
       </header>
 
       <div className="washi px-6 py-20 md:px-10 md:py-28">
-        <div className="mx-auto grid max-w-[1200px] gap-14 lg:grid-cols-[260px_minmax(0,760px)] lg:justify-between">
-          <aside className="secondary-toc">
+        <div className="mx-auto grid max-w-[1200px] gap-8 lg:gap-14 lg:grid-cols-[260px_minmax(0,760px)] lg:justify-between">
+          {/* Mobile Collapsible TOC */}
+          <details className="block lg:hidden rounded-2xl border border-ink/15 bg-paper/60 p-4 shadow-sm group">
+            <summary className="flex cursor-pointer items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-ink/70 select-none">
+              <span className="flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-vermilion" />
+                Mục lục bài viết ({article.sections.length} phần)
+              </span>
+              <span className="text-xs transition-transform duration-200 group-open:rotate-180">▼</span>
+            </summary>
+            <nav aria-label="Mục lục bài viết (di động)" className="mt-3 divide-y divide-ink/10 border-t border-ink/10 pt-2 text-sm">
+              {article.sections.map((section, index) => (
+                <a
+                  key={section.h}
+                  href={`#muc-${index + 1}`}
+                  className="flex min-h-11 items-center py-2 text-ink/80 transition-colors hover:text-vermilion"
+                >
+                  <span className="font-mono text-xs text-ink/40 mr-2.5">0{index + 1}</span>
+                  <span>{section.h}</span>
+                </a>
+              ))}
+            </nav>
+            {contextualProductLinks.length > 0 && (
+              <div className="mt-3 border-t border-ink/10 pt-3">
+                <p className="text-[10px] uppercase tracking-wider text-ink/50 font-medium">Tính năng liên quan</p>
+                <nav aria-label="Tính năng liên quan" className="mt-1 flex flex-wrap gap-2">
+                  {contextualProductLinks.map((p) => (
+                    <Link
+                      key={p.path}
+                      href={p.path}
+                      className="min-h-11 inline-flex items-center rounded-full border border-ink/15 px-3.5 py-1.5 text-xs text-ink/80 hover:border-vermilion hover:text-vermilion"
+                    >
+                      {p.nav} →
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            )}
+          </details>
+
+          {/* Desktop Sticky TOC */}
+          <aside className="secondary-toc hidden lg:block">
             <p>Trong bài viết</p>
             <nav aria-label="Mục lục bài viết">
               {article.sections.map((section, index) => <a key={section.h} href={`#muc-${index + 1}`}>0{index + 1} {section.h}</a>)}

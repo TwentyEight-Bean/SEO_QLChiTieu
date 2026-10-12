@@ -60,8 +60,24 @@ const STAGES: StageInfo[] = [
 export default function DataExpansionSequence() {
   const [currentStage, setCurrentStage] = useState<ExpansionStage>(1);
   const [activeLayer, setActiveLayer] = useState<"phone" | "bars" | "donut" | "summary">("bars");
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Update focal layer on stage change for mobile clarity
+  const selectStage = (stageIdx: ExpansionStage) => {
+    setCurrentStage(stageIdx);
+    if (stageIdx === 1) setActiveLayer("bars");
+    else if (stageIdx === 2) setActiveLayer("donut");
+    else if (stageIdx === 3) setActiveLayer("summary");
+  };
 
   // Subtle intersection observer trigger
   useEffect(() => {
@@ -92,7 +108,7 @@ export default function DataExpansionSequence() {
     const clickX = e.clientX - rect.left;
     const ratio = Math.max(0, Math.min(1, clickX / rect.width));
     const targetStage = Math.round(ratio * 3) as ExpansionStage;
-    setCurrentStage(targetStage);
+    selectStage(targetStage);
   };
 
   return (
@@ -144,8 +160,8 @@ export default function DataExpansionSequence() {
                 type="button"
                 role="tab"
                 aria-selected={currentStage === s.index}
-                onClick={() => setCurrentStage(s.index)}
-                className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border px-3 py-2.5 text-center transition-colors duration-200 ${
+                onClick={() => selectStage(s.index)}
+                className={`min-h-11 group flex cursor-pointer flex-col items-center justify-center rounded-2xl border px-3 py-2.5 text-center transition-colors duration-200 ${
                   currentStage === s.index
                     ? "border-vermilion bg-vermilion text-paper font-medium shadow-md shadow-vermilion/40"
                     : "border-paper/15 bg-paper/5 text-paper/65 hover:border-paper/30 hover:bg-paper/10 hover:text-paper"
@@ -189,179 +205,244 @@ export default function DataExpansionSequence() {
         {/* 2.5D Expanding Holographic Stage & Narrative Split */}
         <div className="mt-16 grid items-start gap-12 lg:grid-cols-[1fr_420px]">
           {/* Left: The 2.5D Multi-Layer Camera Rig */}
-          <div className="expansion-viewport w-full overflow-visible select-none">
-            <div className="expansion-camera-rig">
-              {/* Layer 0: Ambient Vermilion Contact Glow */}
-              <div
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-vermilion/20 blur-[90px] transition-all duration-700"
-                style={{
-                  opacity: currentStage === 0 ? 0.25 : currentStage === 2 ? 0.85 : 0.6,
-                  transform: `translate(-50%, -50%) scale(${1 + currentStage * 0.15})`,
-                }}
-                aria-hidden
-              />
-
-              {/* Layer 1: Base Phone Chassis (Moves backward along Z-axis as data expands) */}
-              <div
-                onClick={() => setActiveLayer("phone")}
-                className="expansion-phone-chassis cursor-pointer"
-                title="Nhấn để xem cấu trúc thân máy"
-                style={{
-                  transform:
-                    currentStage === 0
-                      ? "translate(-50%, -50%) translateZ(0px) scale(1) rotateX(0deg) rotateY(0deg)"
-                      : currentStage === 1
-                      ? "translate(-50%, -50%) translateZ(-30px) scale(0.96) rotateX(6deg) rotateY(-8deg)"
-                      : currentStage === 2
-                      ? "translate(-50%, -50%) translateZ(-80px) scale(0.88) rotateX(8deg) rotateY(-14deg)"
-                      : "translate(-50%, -50%) translateZ(0px) scale(1) rotateX(2deg) rotateY(-4deg)",
-                  filter:
-                    currentStage === 0
-                      ? "brightness(1)"
-                      : currentStage === 2
-                      ? "brightness(0.75)"
-                      : "brightness(0.92)",
-                  opacity: currentStage === 0 ? 1 : currentStage === 2 ? 0.75 : 0.95,
-                  zIndex: 10,
-                }}
-              >
-                <Phone screen="thong-ke" alt="Màn hình thống kê Sổ Chi gốc" w="clamp(230px, 24vw, 285px)" />
+          <div className="w-full">
+            {/* Mobile Single Layer Tab Selector (Only on mobile when currentStage >= 2) */}
+            {isMobile && currentStage >= 2 && (
+              <div className="mb-4 flex items-center justify-center gap-2" role="tablist" aria-label="Chọn tầng dữ liệu hiển thị">
+                {[
+                  { id: "bars" as const, label: "Cột tuần" },
+                  { id: "donut" as const, label: "Cơ cấu" },
+                  { id: "summary" as const, label: "Tổng kết" },
+                ].map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeLayer === l.id}
+                    onClick={() => setActiveLayer(l.id)}
+                    className={`min-h-11 cursor-pointer rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all ${
+                      activeLayer === l.id
+                        ? "border-vermilion bg-vermilion text-paper shadow-md shadow-vermilion/30"
+                        : "border-paper/20 bg-paper/5 text-paper/60 hover:text-paper"
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
               </div>
+            )}
 
-              {/* Layer 2: Volumetric 3D Data Bars (Lift directly off the glass +80px to +120px) */}
-              <div
-                onClick={() => setActiveLayer("bars")}
-                className="expansion-layer-bars cursor-pointer"
-                title="Nhấn để xem biểu đồ thể tích"
-                style={{
-                  opacity: currentStage === 0 ? 0 : 1,
-                  transform:
-                    currentStage === 0
+            <div className="expansion-viewport w-full overflow-hidden rounded-3xl md:overflow-visible md:rounded-none select-none">
+              <div className="expansion-camera-rig">
+                {/* Layer 0: Ambient Vermilion Contact Glow */}
+                <div
+                  className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-vermilion/20 blur-[90px] transition-all duration-700"
+                  style={{
+                    opacity: currentStage === 0 ? 0.25 : currentStage === 2 ? 0.85 : 0.6,
+                    transform: `translate(-50%, -50%) scale(${1 + currentStage * 0.15})`,
+                  }}
+                  aria-hidden
+                />
+
+                {/* Layer 1: Base Phone Chassis (Moves backward along Z-axis as data expands) */}
+                <div
+                  onClick={() => setActiveLayer("phone")}
+                  className="expansion-phone-chassis cursor-pointer"
+                  title="Nhấn để xem cấu trúc thân máy"
+                  style={{
+                    transform:
+                      currentStage === 0
+                        ? "translate(-50%, -50%) translateZ(0px) scale(1) rotateX(0deg) rotateY(0deg)"
+                        : currentStage === 1
+                        ? "translate(-50%, -50%) translateZ(-30px) scale(0.96) rotateX(6deg) rotateY(-8deg)"
+                        : currentStage === 2
+                        ? "translate(-50%, -50%) translateZ(-80px) scale(0.88) rotateX(8deg) rotateY(-14deg)"
+                        : "translate(-50%, -50%) translateZ(0px) scale(1) rotateX(2deg) rotateY(-4deg)",
+                    filter:
+                      currentStage === 0
+                        ? "brightness(1)"
+                        : currentStage === 2
+                        ? "brightness(0.75)"
+                        : "brightness(0.92)",
+                    opacity: currentStage === 0 ? 1 : currentStage === 2 ? 0.75 : 0.95,
+                    zIndex: 10,
+                  }}
+                >
+                  <Phone screen="thong-ke" alt="Màn hình thống kê Sổ Chi gốc" w="clamp(230px, 24vw, 285px)" />
+                </div>
+
+                {/* Layer 2: Volumetric 3D Data Bars (Lift directly off the glass +80px to +120px) */}
+                <div
+                  onClick={() => setActiveLayer("bars")}
+                  className="expansion-layer-bars cursor-pointer"
+                  title="Nhấn để xem biểu đồ thể tích"
+                  style={{
+                    opacity:
+                      isMobile
+                        ? currentStage === 0
+                          ? 0
+                          : currentStage === 1 || activeLayer === "bars"
+                          ? 1
+                          : 0
+                        : currentStage === 0
+                        ? 0
+                        : 1,
+                    pointerEvents: isMobile && currentStage >= 2 && activeLayer !== "bars" ? "none" : "auto",
+                    transform: isMobile
+                      ? currentStage === 0
+                        ? "translate(-50%, calc(-50% - 20px)) translateZ(0px) scale(0.85)"
+                        : currentStage === 1 || activeLayer === "bars"
+                        ? "translate(-50%, calc(-50% - 25px)) translateZ(50px) scale(0.98)"
+                        : "translate(-50%, calc(-50% - 25px)) translateZ(-20px) scale(0.85)"
+                      : currentStage === 0
                       ? "translate(-50%, calc(-50% - 20px)) translateZ(0px) scale(0.85)"
                       : currentStage === 1
                       ? "translate(calc(-50% + 20px), calc(-50% - 40px)) translateZ(80px) scale(1.05) rotateX(6deg) rotateY(-8deg)"
                       : currentStage === 2
                       ? "translate(calc(-50% + 30px), calc(-50% - 70px)) translateZ(110px) scale(1.08) rotateX(8deg) rotateY(-12deg)"
                       : "translate(calc(-50% + 15px), calc(-50% - 35px)) translateZ(55px) scale(1.02) rotateX(2deg) rotateY(-4deg)",
-                  zIndex: 25,
-                }}
-              >
-                {/* 3D Glass Bar Stage with Real Shadow Projection */}
-                <div className="relative rounded-2xl border border-vermilion/50 bg-[#1e1513]/90 p-4 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-vermilion">
-                  <div className="flex items-center justify-between border-b border-paper/10 pb-2">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-vermilion font-medium">
-                      Biến động tuần · Tầng +80px
-                    </span>
-                    <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[9px] text-vermilion font-semibold">
-                      Live Volumetric
-                    </span>
-                  </div>
+                    zIndex: 25,
+                  }}
+                >
+                  {/* 3D Glass Bar Stage with Real Shadow Projection */}
+                  <div className="relative rounded-2xl border border-vermilion/50 bg-[#1e1513]/90 p-4 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-vermilion max-w-[320px]">
+                    <div className="flex items-center justify-between border-b border-paper/10 pb-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-vermilion font-medium">
+                        Biến động tuần · Tầng +80px
+                      </span>
+                      <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[9px] text-vermilion font-semibold">
+                        Live Volumetric
+                      </span>
+                    </div>
 
-                  {/* 7 Extruded Volume Bars */}
-                  <div className="mt-3 flex items-end gap-3">
-                    {[
-                      { day: "T2", height: currentStage >= 2 ? 45 : 35, val: "140k" },
-                      { day: "T3", height: currentStage >= 2 ? 38 : 30, val: "110k" },
-                      { day: "T4", height: currentStage >= 2 ? 72 : 55, val: "260k" },
-                      { day: "T5", height: currentStage >= 2 ? 55 : 42, val: "190k" },
-                      { day: "T6", height: currentStage >= 2 ? 105 : 88, isPeak: true, val: "380k" },
-                      { day: "T7", height: currentStage >= 2 ? 80 : 64, val: "290k" },
-                      { day: "CN", height: currentStage >= 2 ? 70 : 54, val: "270k" },
-                    ].map((bar) => (
-                      <div key={bar.day} className="flex flex-col items-center gap-1.5">
-                        <span className={`text-[9px] ${bar.isPeak ? "font-bold text-vermilion" : "text-paper/50"}`}>
-                          {bar.day}
-                        </span>
-                        <div
-                          className={`w-4.5 rounded-t-sm transition-all duration-700 ease-out ${
-                            bar.isPeak
-                              ? "bg-gradient-to-t from-vermilion via-vermilion to-vermilion-bright shadow-lg shadow-vermilion/60 ring-1 ring-vermilion/50"
-                              : "bg-paper/25 hover:bg-paper/40"
-                          }`}
-                          style={{ height: `${bar.height}px` }}
-                        />
-                        <span className={`text-[8px] font-mono ${bar.isPeak ? "font-bold text-vermilion" : "text-paper/40"}`}>
-                          {bar.val}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                    {/* 7 Extruded Volume Bars */}
+                    <div className="mt-3 flex items-end justify-between gap-2 sm:gap-3">
+                      {[
+                        { day: "T2", height: currentStage >= 2 ? 45 : 35, val: "140k" },
+                        { day: "T3", height: currentStage >= 2 ? 38 : 30, val: "110k" },
+                        { day: "T4", height: currentStage >= 2 ? 72 : 55, val: "260k" },
+                        { day: "T5", height: currentStage >= 2 ? 55 : 42, val: "190k" },
+                        { day: "T6", height: currentStage >= 2 ? 105 : 88, isPeak: true, val: "380k" },
+                        { day: "T7", height: currentStage >= 2 ? 80 : 64, val: "290k" },
+                        { day: "CN", height: currentStage >= 2 ? 70 : 54, val: "270k" },
+                      ].map((bar) => (
+                        <div key={bar.day} className="flex flex-col items-center gap-1.5">
+                          <span className={`text-[9px] ${bar.isPeak ? "font-bold text-vermilion" : "text-paper/50"}`}>
+                            {bar.day}
+                          </span>
+                          <div
+                            className={`w-3.5 sm:w-4.5 rounded-t-sm transition-all duration-700 ease-out ${
+                              bar.isPeak
+                                ? "bg-gradient-to-t from-vermilion via-vermilion to-vermilion-bright shadow-lg shadow-vermilion/60 ring-1 ring-vermilion/50"
+                                : "bg-paper/25 hover:bg-paper/40"
+                            }`}
+                            style={{ height: `${bar.height}px` }}
+                          />
+                          <span className={`text-[8px] font-mono ${bar.isPeak ? "font-bold text-vermilion" : "text-paper/40"}`}>
+                            {bar.val}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
 
-                  {/* Peak Indicator Callout Pin */}
-                  <div className="mt-2.5 flex items-center justify-between border-t border-paper/10 pt-2 text-[10px]">
-                    <span className="text-paper/60">Đỉnh chi tiêu Thứ Sáu:</span>
-                    <strong className="text-vermilion">380.000 ₫ (Gấp 2,2× T2)</strong>
+                    {/* Peak Indicator Callout Pin */}
+                    <div className="mt-2.5 flex items-center justify-between border-t border-paper/10 pt-2 text-[10px]">
+                      <span className="text-paper/60">Đỉnh chi Thứ Sáu:</span>
+                      <strong className="text-vermilion">380k (Gấp 2,2× T2)</strong>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Layer 3: Detached Category Donut Ring (+140px in Stage 2 & 3) */}
-              <div
-                onClick={() => setActiveLayer("donut")}
-                className="expansion-layer-donut cursor-pointer"
-                title="Nhấn để xem cơ cấu danh mục nổi"
-                style={{
-                  opacity: currentStage >= 2 ? 1 : 0,
-                  transform:
-                    currentStage === 2
+                {/* Layer 3: Detached Category Donut Ring (+140px in Stage 2 & 3) */}
+                <div
+                  onClick={() => setActiveLayer("donut")}
+                  className="expansion-layer-donut cursor-pointer"
+                  title="Nhấn để xem cơ cấu danh mục nổi"
+                  style={{
+                    opacity:
+                      isMobile
+                        ? currentStage >= 2 && activeLayer === "donut"
+                          ? 1
+                          : 0
+                        : currentStage >= 2
+                        ? 1
+                        : 0,
+                    pointerEvents: isMobile && (currentStage < 2 || activeLayer !== "donut") ? "none" : "auto",
+                    transform: isMobile
+                      ? activeLayer === "donut"
+                        ? "translate(-50%, calc(-50% - 20px)) translateZ(50px) scale(0.98)"
+                        : "translate(-50%, calc(-50% - 20px)) translateZ(-20px) scale(0.85)"
+                      : currentStage === 2
                       ? "translate(calc(-50% - 135px), calc(-50% - 85px)) translateZ(140px) scale(0.96) rotateX(4deg) rotateY(-6deg)"
                       : currentStage === 3
                       ? "translate(calc(-50% - 120px), calc(-50% - 75px)) translateZ(70px) scale(0.94) rotateX(2deg) rotateY(-4deg)"
                       : "translate(-50%, -50%) translateZ(0px) scale(0.7)",
-                  zIndex: 35,
-                }}
-              >
-                <div className="rounded-2xl border border-paper/20 bg-[#16100e]/95 p-3.5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-vermilion/60">
-                  <div className="flex items-center gap-3">
-                    {/* Mini SVG Donut */}
-                    <div className="relative size-12 shrink-0">
-                      <svg className="size-full -rotate-90" viewBox="0 0 40 40">
-                        <circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeOpacity="0.1" strokeWidth="5" />
-                        <circle cx="20" cy="20" r="14" fill="none" stroke="#d23a22" strokeWidth="5" strokeDasharray="33 55" strokeDashoffset="0" />
-                        <circle cx="20" cy="20" r="14" fill="none" stroke="#17120f" strokeWidth="5" strokeDasharray="24 64" strokeDashoffset="-33" />
-                        <circle cx="20" cy="20" r="14" fill="none" stroke="#b8935a" strokeWidth="5" strokeDasharray="17 71" strokeDashoffset="-57" />
-                      </svg>
-                      <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] font-bold text-vermilion">
-                        38%
-                      </span>
-                    </div>
+                    zIndex: 35,
+                  }}
+                >
+                  <div className="rounded-2xl border border-paper/20 bg-[#16100e]/95 p-3.5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-vermilion/60 max-w-[280px]">
+                    <div className="flex items-center gap-3">
+                      {/* Mini SVG Donut */}
+                      <div className="relative size-12 shrink-0">
+                        <svg className="size-full -rotate-90" viewBox="0 0 40 40">
+                          <circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeOpacity="0.1" strokeWidth="5" />
+                          <circle cx="20" cy="20" r="14" fill="none" stroke="#d23a22" strokeWidth="5" strokeDasharray="33 55" strokeDashoffset="0" />
+                          <circle cx="20" cy="20" r="14" fill="none" stroke="#17120f" strokeWidth="5" strokeDasharray="24 64" strokeDashoffset="-33" />
+                          <circle cx="20" cy="20" r="14" fill="none" stroke="#b8935a" strokeWidth="5" strokeDasharray="17 71" strokeDashoffset="-57" />
+                        </svg>
+                        <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] font-bold text-vermilion">
+                          38%
+                        </span>
+                      </div>
 
-                    <div>
-                      <span className="block text-[9px] uppercase tracking-wider text-paper/50">Cơ cấu tách tầng</span>
-                      <strong className="block text-xs text-paper">Ăn uống · 2.370k</strong>
-                      <span className="text-[10px] text-paper/60">Nhà ở 27% · Di chuyển 19%</span>
+                      <div>
+                        <span className="block text-[9px] uppercase tracking-wider text-paper/50">Cơ cấu tách tầng</span>
+                        <strong className="block text-xs text-paper">Ăn uống · 2.370k</strong>
+                        <span className="text-[10px] text-paper/60">Nhà ở 27% · Di chuyển 19%</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Layer 4: Floating Executive Summary Card (+130px in Stage 2 & 3) */}
-              <div
-                onClick={() => setActiveLayer("summary")}
-                className="expansion-layer-summary cursor-pointer"
-                title="Nhấn để xem tổng kết tài chính"
-                style={{
-                  opacity: currentStage >= 2 ? 1 : 0,
-                  transform:
-                    currentStage === 2
+                {/* Layer 4: Floating Executive Summary Card (+130px in Stage 2 & 3) */}
+                <div
+                  onClick={() => setActiveLayer("summary")}
+                  className="expansion-layer-summary cursor-pointer"
+                  title="Nhấn để xem tổng kết tài chính"
+                  style={{
+                    opacity:
+                      isMobile
+                        ? currentStage >= 2 && activeLayer === "summary"
+                          ? 1
+                          : 0
+                        : currentStage >= 2
+                        ? 1
+                        : 0,
+                    pointerEvents: isMobile && (currentStage < 2 || activeLayer !== "summary") ? "none" : "auto",
+                    transform: isMobile
+                      ? activeLayer === "summary"
+                        ? "translate(-50%, calc(-50% - 20px)) translateZ(50px) scale(0.98)"
+                        : "translate(-50%, calc(-50% - 20px)) translateZ(-20px) scale(0.85)"
+                      : currentStage === 2
                       ? "translate(calc(-50% + 120px), calc(-50% + 120px)) translateZ(135px) scale(0.96) rotateX(4deg) rotateY(-6deg)"
                       : currentStage === 3
                       ? "translate(calc(-50% + 105px), calc(-50% + 110px)) translateZ(65px) scale(0.94) rotateX(2deg) rotateY(-4deg)"
                       : "translate(-50%, -50%) translateZ(0px) scale(0.7)",
-                  zIndex: 35,
-                }}
-              >
-                <div className="rounded-2xl border border-gold/40 bg-[#18120e]/95 p-3.5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-gold">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <span className="block text-[9px] uppercase tracking-wider text-gold font-medium">Nhịp chi cuối tuần</span>
-                      <strong className="mt-0.5 block text-xs font-semibold text-paper">T6 - CN chiếm 52%</strong>
+                    zIndex: 35,
+                  }}
+                >
+                  <div className="rounded-2xl border border-gold/40 bg-[#18120e]/95 p-3.5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-gold max-w-[280px]">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <span className="block text-[9px] uppercase tracking-wider text-gold font-medium">Nhịp chi cuối tuần</span>
+                        <strong className="mt-0.5 block text-xs font-semibold text-paper">T6 - CN chiếm 52%</strong>
+                      </div>
+                      <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] text-emerald-400 font-medium">
+                        ↓ 12% tháng
+                      </span>
                     </div>
-                    <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] text-emerald-400 font-medium">
-                      ↓ 12% tháng
-                    </span>
+                    <p className="mt-1 text-[10px] text-paper/60">Đã tiết kiệm được 480k so với hạn mức</p>
                   </div>
-                  <p className="mt-1 text-[10px] text-paper/60">Đã tiết kiệm được 480k so với hạn mức</p>
                 </div>
               </div>
             </div>
@@ -414,16 +495,16 @@ export default function DataExpansionSequence() {
               <button
                 type="button"
                 disabled={currentStage === 0}
-                onClick={() => setCurrentStage((prev) => Math.max(0, prev - 1) as ExpansionStage)}
-                className="cursor-pointer text-xs uppercase tracking-wider text-paper/60 transition-colors hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+                onClick={() => selectStage(Math.max(0, currentStage - 1) as ExpansionStage)}
+                className="min-h-11 px-2 cursor-pointer text-xs uppercase tracking-wider text-paper/60 transition-colors hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ← Giai đoạn trước
               </button>
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5 py-3">
                 {STAGES.map((s) => (
                   <span
                     key={s.index}
-                    onClick={() => setCurrentStage(s.index)}
+                    onClick={() => selectStage(s.index)}
                     className={`block size-2 cursor-pointer rounded-full transition-all duration-300 ${
                       currentStage === s.index ? "w-6 bg-vermilion" : "bg-paper/20 hover:bg-paper/40"
                     }`}
@@ -433,8 +514,8 @@ export default function DataExpansionSequence() {
               <button
                 type="button"
                 disabled={currentStage === 3}
-                onClick={() => setCurrentStage((prev) => Math.min(3, prev + 1) as ExpansionStage)}
-                className="cursor-pointer text-xs uppercase tracking-wider text-vermilion font-medium transition-colors hover:text-vermilion-bright disabled:cursor-not-allowed disabled:opacity-30"
+                onClick={() => selectStage(Math.min(3, currentStage + 1) as ExpansionStage)}
+                className="min-h-11 px-2 cursor-pointer text-xs uppercase tracking-wider text-vermilion font-medium transition-colors hover:text-vermilion-bright disabled:cursor-not-allowed disabled:opacity-30"
               >
                 Giai đoạn tiếp →
               </button>

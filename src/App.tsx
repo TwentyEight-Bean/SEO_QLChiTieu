@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Phone from "./Phone";
 import { APP, CATEGORIES, FEATURES, MONTHS, STORES, TREND } from "./config";
-import ContentPage, { ALL_PAGES, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
+import ContentPage, { ALL_PAGES, PRODUCT_PAGES, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
 import { Link, usePath } from "./router";
 import { openPrelaunchSheet, storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
 import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
@@ -622,11 +622,11 @@ function Hero() {
     <section id="top" data-scene aria-labelledby="h1" className="relative isolate flex min-h-svh items-center overflow-hidden bg-ink">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_45%,#2a211c_0%,#0c0a09_62%)]" />
       <div className="mx-auto grid w-full max-w-[1500px] items-center gap-10 px-6 pb-28 pt-28 md:grid-cols-[1.05fr_1fr] md:px-10 md:pb-16">
-        <div className="order-2 md:order-1">
+        <div className="order-1 md:order-1">
           <div className="hero-fade" style={d(1.6)}>
             <Eyebrow n="一">Ứng dụng quản lý chi tiêu</Eyebrow>
           </div>
-          <h1 id="h1" className="mt-8 font-display text-[clamp(2.6rem,6.6vw,6.2rem)] font-light leading-[1.04] tracking-[-0.01em]">
+          <h1 id="h1" className="mt-8 font-display text-[clamp(2.2rem,6.2vw,6.2rem)] font-light leading-[1.06] tracking-[-0.01em] [text-wrap:balance]">
             <span className="mask block overflow-hidden pb-1"><span style={d(1.7)}>Chi tiêu rõ ràng.</span></span>
             <span className="mask block overflow-hidden pb-2"><span style={d(1.95)} className="italic text-vermilion">Cuộc sống chủ động.</span></span>
           </h1>
@@ -647,7 +647,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="order-1 flex justify-center md:order-2" style={{ perspective: "1400px" }}>
+        <div className="order-2 flex justify-center md:order-2 mt-4 md:mt-0" style={{ perspective: "1400px" }}>
           <div className="hero-stage relative flex items-center justify-center">
             <div
               aria-hidden
@@ -660,7 +660,7 @@ function Hero() {
               src={F1.shot}
               screen={F1.id}
               alt={`Màn hình chính của ứng dụng ${APP.name}`}
-              w="clamp(170px, 24vw, 310px)"
+              w="clamp(220px, 64vw, 310px)"
             />
           </div>
         </div>
@@ -937,20 +937,87 @@ function FinalReveal() {
 
 function Footer() {
   return (
-    <footer className="bg-ink px-6 pb-28 pt-16 text-paper md:px-10 md:pb-12">
-      <div className="mx-auto flex max-w-[1300px] flex-col gap-10 border-t border-paper/15 pt-10 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p className="flex items-center gap-3 font-display text-2xl"><span className="size-4 rounded-full bg-vermilion" aria-hidden />{APP.name}</p>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-paper/60">
-            Ứng dụng quản lý chi tiêu cá nhân. Giúp bạn ghi chép thu chi, xem thống kê và lập ngân sách.
-          </p>
+    <footer className="bg-ink px-6 pb-28 pt-16 text-paper md:px-10 md:pb-14">
+      <div className="mx-auto max-w-[1300px] border-t border-paper/15 pt-12">
+        <div className="grid gap-10 md:grid-cols-12 lg:gap-14">
+          {/* Brand & Description */}
+          <div className="md:col-span-5 lg:col-span-4">
+            <Link href="/" className="inline-flex items-center gap-3 font-display text-2xl text-paper">
+              <span className="size-4 rounded-full bg-vermilion" aria-hidden />
+              {APP.name}
+            </Link>
+            <p className="mt-3.5 max-w-sm text-sm leading-relaxed text-paper/65">
+              Ứng dụng quản lý chi tiêu cá nhân. Giúp bạn ghi chép thu chi nhanh gọn, đọc hiểu bức tranh tài chính và lập ngân sách chủ động mỗi ngày.
+            </p>
+            <div className="mt-6 flex items-center gap-3 text-xs text-paper/40">
+              <span className="size-2 rounded-full bg-emerald-500/80" />
+              <span>Bản quyền © {new Date().getFullYear()} Sổ Chi. Hoạt động độc lập.</span>
+            </div>
+          </div>
+
+          {/* Links Column 1: Core Features */}
+          <div className="md:col-span-3 lg:col-span-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-paper/50">Tính năng cốt lõi</p>
+            <ul className="mt-4 space-y-1 text-sm text-paper/75">
+              {PRODUCT_PAGES.map((p) => (
+                <li key={p.path}>
+                  <Link
+                    href={p.path}
+                    className="flex min-h-11 items-center py-2 transition-colors hover:text-paper"
+                  >
+                    {p.nav}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Links Column 2: Knowledge & Prelaunch */}
+          <div className="md:col-span-4 lg:col-span-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-paper/50">Kiến thức & Phát hành</p>
+            <ul className="mt-4 space-y-1 text-sm text-paper/75">
+              <li>
+                <Link
+                  href="/blog"
+                  className="flex min-h-11 items-center py-2 transition-colors hover:text-paper"
+                >
+                  Blog quản lý chi tiêu
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog/ghi-chep-chi-tieu-hang-ngay"
+                  className="flex min-h-11 items-center py-2 transition-colors hover:text-paper"
+                >
+                  Ghi chép chi tiêu hằng ngày
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog/doc-bieu-do-chi-tieu"
+                  className="flex min-h-11 items-center py-2 transition-colors hover:text-paper"
+                >
+                  Cách đọc biểu đồ chi tiêu
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="/#tai-ung-dung"
+                  className="flex min-h-11 items-center py-2 font-medium text-vermilion transition-colors hover:text-vermilion-bright"
+                >
+                  {PRIMARY_CTA_LABEL} →
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
-        <nav aria-label="Liên kết chân trang" className="grid gap-3 text-sm text-paper/70 sm:grid-cols-2 sm:gap-x-12">
-          {ALL_PAGES.map((p) => <Link key={p.path} href={p.path} className="hover:text-paper">{p.nav}</Link>)}
-          <a href="/#tai-ung-dung" className="hover:text-paper">{PRIMARY_CTA_LABEL}</a>
-        </nav>
+
+        {/* Disclaimer & Legal note */}
+        <div className="mt-12 border-t border-paper/10 pt-8 text-xs leading-relaxed text-paper/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <p>© {new Date().getFullYear()} {APP.name}. Mọi quyền được bảo lưu.</p>
+          <p>Số liệu và hình ảnh biểu đồ trong website mang tính minh họa giao diện sản phẩm.</p>
+        </div>
       </div>
-      <p className="mx-auto mt-10 max-w-[1300px] text-xs text-paper/40">© {new Date().getFullYear()} {APP.name}. Số liệu trong biểu đồ chỉ mang tính minh họa.</p>
     </footer>
   );
 }

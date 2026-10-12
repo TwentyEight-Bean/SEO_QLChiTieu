@@ -57,7 +57,7 @@ export default function TransactionFlowShowcase() {
 
         {/* Interactive Controls Bar */}
         <div className="mx-auto mt-10 max-w-5xl">
-          <div className="flex flex-wrap items-center justify-center gap-2 md:flex-nowrap md:gap-2.5">
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5">
             {[
               { s: 0, label: "01. Khởi tạo" },
               { s: 1, label: "02. Nhập khoản chi" },
@@ -72,7 +72,7 @@ export default function TransactionFlowShowcase() {
                   setIsPlaying(false);
                   setStep(item.s);
                 }}
-                className={`cursor-pointer whitespace-nowrap rounded-full border px-3.5 py-2 text-xs uppercase tracking-[0.12em] transition-colors ${
+                className={`flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-full border px-4 py-2.5 text-xs uppercase tracking-[0.12em] transition-colors ${
                   step === item.s
                     ? "border-vermilion bg-vermilion text-paper font-medium shadow-md shadow-vermilion/30"
                     : "border-paper/15 text-paper/60 hover:border-paper/30 hover:text-paper"
@@ -86,7 +86,7 @@ export default function TransactionFlowShowcase() {
             <button
               type="button"
               onClick={() => setIsPlaying((prev) => !prev)}
-              className="inline-flex w-36 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-2 text-xs uppercase tracking-[0.12em] text-gold transition-colors hover:bg-gold hover:text-ink font-medium"
+              className="inline-flex min-h-11 w-36 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-2.5 text-xs uppercase tracking-[0.12em] text-gold transition-colors hover:bg-gold hover:text-ink font-medium"
             >
               <span className={`size-1.5 rounded-full ${isPlaying ? "bg-emerald-400" : "bg-gold animate-pulse"}`} />
               <span>{isPlaying ? "Tạm dừng" : "Tự động ▶"}</span>
@@ -152,6 +152,38 @@ export default function TransactionFlowShowcase() {
           {/* Right: Step-by-Step Interactive Flow Breakdown */}
           <div className="rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1c1613] to-[#0f0c0b] p-6 shadow-2xl md:p-10">
             <span className="text-xs uppercase tracking-[0.24em] text-paper/50">Diễn giải chuyển động tương tác</span>
+
+            {/* Mobile Vertical Flow Sequence Indicator (Section 9 Requirement) */}
+            <div className="mt-4 md:hidden rounded-2xl border border-paper/10 bg-paper/5 p-4">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-paper/50">Trình tự luồng dữ liệu</span>
+              <div className="mt-3 flex flex-col items-center gap-1.5 text-xs text-paper/80">
+                <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 1 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
+                  <span>Khoản chi mới</span>
+                  <span className="text-vermilion font-medium">−45.000 ₫</span>
+                </div>
+                <span className="text-paper/40 text-xs" aria-hidden>↓</span>
+                <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 3 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
+                  <span>Danh mục</span>
+                  <span className="text-gold">Ăn uống</span>
+                </div>
+                <span className="text-paper/40 text-xs" aria-hidden>↓</span>
+                <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 2 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
+                  <span>Danh sách giao dịch</span>
+                  <span className="text-paper/60">09:15 sáng</span>
+                </div>
+                <span className="text-paper/40 text-xs" aria-hidden>↓</span>
+                <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 4 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
+                  <span>Tổng chi ngày</span>
+                  <span className="text-paper font-semibold">180.000 ₫</span>
+                </div>
+                <span className="text-paper/40 text-xs" aria-hidden>↓</span>
+                <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 0 || step === 4 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
+                  <span>Bức tranh tổng thể</span>
+                  <span className="text-emerald-400">24.680.000 ₫</span>
+                </div>
+              </div>
+            </div>
+
             <div className="mt-6 flex flex-col gap-6">
               {/* Step item 1 */}
               <div

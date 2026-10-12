@@ -24,10 +24,10 @@ type Props = {
 };
 
 const positionClasses: Record<FloatingChip["position"], string> = {
-  "top-left": "-top-6 -left-6 md:-left-12",
-  "top-right": "-top-6 -right-6 md:-right-12",
-  "bottom-left": "-bottom-6 -left-6 md:-left-12",
-  "bottom-right": "-bottom-6 -right-6 md:-right-12",
+  "top-left": "top-2 left-2 md:-top-6 md:-left-12",
+  "top-right": "top-2 right-2 md:-top-6 md:-right-12",
+  "bottom-left": "bottom-4 left-2 md:-bottom-6 md:-left-12",
+  "bottom-right": "bottom-4 right-2 md:-bottom-6 md:-right-12",
 };
 
 export default function DeviceMockup({

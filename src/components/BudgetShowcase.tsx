@@ -146,7 +146,7 @@ export default function BudgetShowcase() {
                   key={stg.pct}
                   type="button"
                   onClick={() => setActiveStage(idx)}
-                  className={`cursor-pointer rounded-full px-4 py-2 text-xs uppercase tracking-[0.14em] transition-all ${
+                  className={`flex min-h-11 cursor-pointer items-center rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.14em] transition-all ${
                     activeStage === idx
                       ? "bg-vermilion text-paper font-medium shadow-md shadow-vermilion/30"
                       : "border border-paper/15 text-paper/60 hover:border-paper/30 hover:text-paper"
@@ -160,7 +160,7 @@ export default function BudgetShowcase() {
         </div>
 
         {/* Stage 2: 2.5D Layered Depth Category Cards (Depth Stagger) */}
-        <div className="mt-28">
+        <div className="mt-20 md:mt-28">
           <div className="mx-auto max-w-2xl text-center">
             <p className="flex items-center justify-center gap-3 text-[11px] font-medium uppercase tracking-[0.28em] text-paper/60">
               <span className="font-display text-base text-vermilion">02</span>
@@ -175,7 +175,65 @@ export default function BudgetShowcase() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Mobile: Category Tabs + Single Focused Card (Section 10 Requirement) */}
+          <div className="mt-8 md:hidden">
+            <div className="flex flex-wrap justify-center gap-2">
+              {CATEGORY_CARDS.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCat(cat.id)}
+                  className={`flex min-h-11 cursor-pointer items-center rounded-full px-4 py-2 text-xs uppercase tracking-wider transition-all ${
+                    selectedCat === cat.id
+                      ? "bg-vermilion text-paper font-medium shadow-md shadow-vermilion/30"
+                      : "border border-paper/15 text-paper/60"
+                  }`}
+                >
+                  {cat.name} ({cat.pct}%)
+                </button>
+              ))}
+            </div>
+
+            {/* Focused Mobile Card */}
+            {(() => {
+              const activeCat = CATEGORY_CARDS.find((c) => c.id === selectedCat) || CATEGORY_CARDS[0];
+              const isAlert = activeCat.pct > 85;
+              return (
+                <div className={`mt-6 rounded-3xl border p-6 transition-all ${isAlert ? "border-vermilion/50 bg-gradient-to-b from-[#221411] to-[#140e0c]" : "border-paper/20 bg-paper/5"}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs uppercase tracking-widest text-paper/50">Danh mục đang chọn</span>
+                      <h4 className="mt-1 font-display text-2xl font-light text-paper">{activeCat.name}</h4>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isAlert ? "bg-vermilion/30 text-vermilion border border-vermilion/50" : "bg-paper/10 text-paper/80"}`}>
+                      {activeCat.pct}% {isAlert ? "Cảnh báo" : "An toàn"}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 flex items-baseline justify-between border-t border-paper/10 pt-4">
+                    <span className="text-xs text-paper/60">Đã chi / Hạn mức:</span>
+                    <strong className="font-display text-2xl text-paper">{activeCat.used} <span className="text-sm font-sans text-paper/40">/ {activeCat.limit}</span></strong>
+                  </div>
+
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-paper/15">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${isAlert ? "bg-vermilion" : "bg-gold"}`}
+                      style={{ width: `${activeCat.pct}%` }}
+                    />
+                  </div>
+
+                  <p className="mt-4 text-xs leading-relaxed text-paper/65">
+                    {isAlert
+                      ? "Khoản chi đã chạm ngưỡng 91%. Sổ Chi khuyến nghị tạm hoãn các đơn mua sắm ngẫu hứng trong 3 ngày tới."
+                      : "Hạn mức đang ở ngưỡng kiểm soát an toàn. Bạn có thể duy trì nhịp chi tiêu bình thường."}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Desktop: 4-Column Grid (>= md) */}
+          <div className="mt-12 hidden md:grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {CATEGORY_CARDS.map((cat) => {
               const isSelected = selectedCat === cat.id;
               return (
@@ -184,7 +242,7 @@ export default function BudgetShowcase() {
                   onClick={() => setSelectedCat(cat.id)}
                   className={`group cursor-pointer rounded-2xl border p-5 transition-all duration-500 ${
                     isSelected
-                      ? "border-vermilion bg-paper/10 scale-105 shadow-2xl shadow-vermilion/20"
+                      ? "border-vermilion bg-paper/10 scale-[1.02] shadow-2xl shadow-vermilion/20"
                       : "border-paper/15 bg-paper/5 opacity-80 hover:opacity-100 hover:border-paper/30"
                   }`}
                 >

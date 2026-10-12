@@ -111,7 +111,7 @@ export default function MobilePrelaunchSheet({
       {/* Bottom Sheet Container */}
       <div
         ref={sheetRef}
-        className="mobile-sheet-panel fixed inset-x-0 bottom-0 z-10 mx-auto max-w-lg rounded-t-[28px] border-t border-paper/15 bg-gradient-to-b from-[#181210] to-[#0e0a09] px-6 pt-3 shadow-[0_-16px_40px_rgba(0,0,0,0.8)]"
+        className="mobile-sheet-panel fixed inset-x-0 bottom-0 z-10 mx-auto max-w-lg max-h-[92svh] overflow-y-auto rounded-t-[28px] border-t border-paper/15 bg-gradient-to-b from-[#181210] to-[#0e0a09] px-6 pt-3 shadow-[0_-16px_40px_rgba(0,0,0,0.8)]"
         style={{
           paddingBottom: "max(1.75rem, calc(env(safe-area-inset-bottom) + 1.25rem))",
         }}
@@ -197,7 +197,7 @@ export default function MobilePrelaunchSheet({
                 disabled={isSubmitting}
                 className="group relative flex min-h-12 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-vermilion px-6 text-sm font-medium text-paper shadow-lg shadow-vermilion/30 transition-transform active:scale-[0.98]"
               >
-                <span>{isSubmitting ? "Đang xử lý..." : "Nhận thông báo"}</span>
+                <span>{isSubmitting ? "Đang xử lý..." : "Nhận thông báo khi ra mắt"}</span>
                 <span
                   className="text-base transition-transform duration-200 group-hover:translate-x-1 group-active:translate-x-1"
                   aria-hidden

@@ -180,7 +180,7 @@ export default function StatisticsVisualStories({ page }: { page: ProductPageDef
                       setTimelineView(view);
                       setActivePointIdx(0);
                     }}
-                    className={`cursor-pointer rounded-full border px-4 py-2 text-xs uppercase tracking-wider transition-all duration-300 ${
+                    className={`min-h-11 flex items-center cursor-pointer rounded-full border px-5 py-2.5 text-xs uppercase tracking-wider transition-all duration-300 ${
                       timelineView === view
                         ? "border-ink bg-ink text-paper font-medium shadow-md"
                         : "border-ink/20 bg-paper/60 text-ink/70 hover:border-ink/40 hover:bg-paper"
@@ -382,7 +382,7 @@ export default function StatisticsVisualStories({ page }: { page: ProductPageDef
                         key={cat.name}
                         type="button"
                         onClick={() => setSelectedCatIdx(idx)}
-                        className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs transition-all ${
+                        className={`min-h-11 flex items-center cursor-pointer rounded-full border px-4 py-2 text-xs transition-all ${
                           selectedCatIdx === idx
                             ? "border-vermilion bg-vermilion text-paper font-medium"
                             : "border-ink/20 bg-paper/50 text-ink/70 hover:border-ink/40"
@@ -479,55 +479,106 @@ export default function StatisticsVisualStories({ page }: { page: ProductPageDef
           {/* 3D Depth Comparison Stage */}
           <div className="mt-16">
             {comparisonMode === "3d" ? (
-              <div className="month-3d-stage relative mx-auto flex min-h-[460px] max-w-[980px] items-center justify-center" style={{ perspective: "1400px" }}>
-                {MONTH_COMPARISONS.map((m, idx) => {
-                  const isActive = activeMonthIdx === idx;
-                  const offsetX = idx === 0 ? "-240px" : idx === 1 ? "0px" : "+240px";
+              <>
+                {/* Mobile View (< md): Focused Single Month Card with Tap-Friendly Month Selector */}
+                <div className="block md:hidden">
+                  <div className="mb-6 flex items-center justify-center gap-2" role="tablist" aria-label="Chọn tháng đối chiếu">
+                    {MONTH_COMPARISONS.map((m, idx) => (
+                      <button
+                        key={m.month}
+                        type="button"
+                        role="tab"
+                        aria-selected={activeMonthIdx === idx}
+                        onClick={() => setActiveMonthIdx(idx)}
+                        className={`min-h-11 cursor-pointer rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all ${
+                          activeMonthIdx === idx
+                            ? "border-vermilion bg-vermilion text-paper shadow-md shadow-vermilion/30"
+                            : "border-paper/20 bg-paper/5 text-paper/60 hover:text-paper"
+                        }`}
+                      >
+                        {m.month.split(" ")[0]} {m.month.split(" ")[1]}
+                      </button>
+                    ))}
+                  </div>
 
-                  return (
-                    <div
-                      key={m.month}
-                      onClick={() => setActiveMonthIdx(idx)}
-                      className="month-chart-plane absolute select-none cursor-pointer rounded-3xl border p-6 transition-all duration-700 ease-out md:p-8"
-                      style={{
-                        transform: `translateX(${offsetX}) translateZ(${isActive ? 60 : m.depthZ}px) rotateY(${isActive ? 0 : m.rotateY}deg) scale(${
-                          isActive ? 1.05 : 0.92
-                        })`,
-                        zIndex: isActive ? 30 : idx === 1 ? 20 : 10,
-                        borderColor: isActive ? "rgba(210,58,34,0.6)" : "rgba(242,236,223,0.15)",
-                        backgroundColor: isActive ? "#221714" : "#140e0c",
-                        opacity: isActive ? 1 : 0.65,
-                        boxShadow: isActive ? "0 25px 50px -12px rgba(210,58,34,0.35)" : "none",
-                        width: "clamp(260px, 32vw, 320px)",
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs uppercase tracking-widest text-paper/50">{m.month}</span>
-                        {isActive && <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[10px] text-vermilion font-medium">Đang chọn</span>}
-                      </div>
-
-                      <strong className="mt-3 block font-display text-3xl font-light text-paper">{m.total}</strong>
-                      <span className="mt-1 block text-xs font-medium text-gold">Tiết kiệm: {m.saving} ({m.savingRate})</span>
-
-                      {/* Mini Bar Silhouette */}
-                      <div className="mt-6 flex h-24 items-end gap-2 border-b border-paper/10 pb-2">
-                        {m.barHeights.map((h, bIdx) => (
-                          <div
-                            key={bIdx}
-                            className="flex-1 rounded-t-sm transition-all duration-500"
-                            style={{
-                              height: `${h}%`,
-                              backgroundColor: isActive ? (bIdx === 4 ? "#d23a22" : "rgba(242,236,223,0.35)") : "rgba(242,236,223,0.15)",
-                            }}
-                          />
-                        ))}
-                      </div>
-
-                      <p className="mt-4 text-xs leading-relaxed text-paper/60">{m.notes}</p>
+                  <div className="mx-auto max-w-[340px] rounded-3xl border border-vermilion/60 bg-[#221714] p-6 shadow-2xl shadow-vermilion/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-widest text-paper/60">{curMonth.month}</span>
+                      <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[10px] text-vermilion font-medium">Đang chọn</span>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <strong className="mt-3 block font-display text-3xl font-light text-paper">{curMonth.total}</strong>
+                    <span className="mt-1 block text-xs font-medium text-gold">Tiết kiệm: {curMonth.saving} ({curMonth.savingRate})</span>
+
+                    {/* Mini Bar Silhouette */}
+                    <div className="mt-6 flex h-24 items-end gap-2 border-b border-paper/10 pb-2">
+                      {curMonth.barHeights.map((h, bIdx) => (
+                        <div
+                          key={bIdx}
+                          className="flex-1 rounded-t-sm transition-all duration-500"
+                          style={{
+                            height: `${h}%`,
+                            backgroundColor: bIdx === 4 ? "#d23a22" : "rgba(242,236,223,0.35)",
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <p className="mt-4 text-xs leading-relaxed text-paper/70">{curMonth.notes}</p>
+                  </div>
+                </div>
+
+                {/* Desktop View (>= md): Full 3D Interactive Multi-Plane Stage */}
+                <div className="month-3d-stage relative mx-auto hidden min-h-[460px] max-w-[980px] items-center justify-center md:flex" style={{ perspective: "1400px" }}>
+                  {MONTH_COMPARISONS.map((m, idx) => {
+                    const isActive = activeMonthIdx === idx;
+                    const offsetX = idx === 0 ? "-240px" : idx === 1 ? "0px" : "+240px";
+
+                    return (
+                      <div
+                        key={m.month}
+                        onClick={() => setActiveMonthIdx(idx)}
+                        className="month-chart-plane absolute select-none cursor-pointer rounded-3xl border p-6 transition-all duration-700 ease-out md:p-8"
+                        style={{
+                          transform: `translateX(${offsetX}) translateZ(${isActive ? 60 : m.depthZ}px) rotateY(${isActive ? 0 : m.rotateY}deg) scale(${
+                            isActive ? 1.05 : 0.92
+                          })`,
+                          zIndex: isActive ? 30 : idx === 1 ? 20 : 10,
+                          borderColor: isActive ? "rgba(210,58,34,0.6)" : "rgba(242,236,223,0.15)",
+                          backgroundColor: isActive ? "#221714" : "#140e0c",
+                          opacity: isActive ? 1 : 0.65,
+                          boxShadow: isActive ? "0 25px 50px -12px rgba(210,58,34,0.35)" : "none",
+                          width: "clamp(260px, 32vw, 320px)",
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs uppercase tracking-widest text-paper/50">{m.month}</span>
+                          {isActive && <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[10px] text-vermilion font-medium">Đang chọn</span>}
+                        </div>
+
+                        <strong className="mt-3 block font-display text-3xl font-light text-paper">{m.total}</strong>
+                        <span className="mt-1 block text-xs font-medium text-gold">Tiết kiệm: {m.saving} ({m.savingRate})</span>
+
+                        {/* Mini Bar Silhouette */}
+                        <div className="mt-6 flex h-24 items-end gap-2 border-b border-paper/10 pb-2">
+                          {m.barHeights.map((h, bIdx) => (
+                            <div
+                              key={bIdx}
+                              className="flex-1 rounded-t-sm transition-all duration-500"
+                              style={{
+                                height: `${h}%`,
+                                backgroundColor: isActive ? (bIdx === 4 ? "#d23a22" : "rgba(242,236,223,0.35)") : "rgba(242,236,223,0.15)",
+                              }}
+                            />
+                          ))}
+                        </div>
+
+                        <p className="mt-4 text-xs leading-relaxed text-paper/60">{m.notes}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
               /* Merged Direct Comparison Trend Line */
               <div className="mx-auto max-w-[840px] rounded-3xl border border-paper/15 bg-[#1f1715] p-8 shadow-2xl md:p-12">
