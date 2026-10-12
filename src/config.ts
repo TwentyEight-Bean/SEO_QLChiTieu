@@ -1,7 +1,7 @@
-// PLACEHOLDER CONTENT: replace with verified product data before launch.
+// SITE CONFIG: Supports VITE_SITE_URL env variable with fallback.
 export const APP = {
-  name: "Sổ Chi", // placeholder brand name
-  siteUrl: "https://sochi.app", // canonical origin
+  name: "Sổ Chi",
+  siteUrl: (import.meta.env.VITE_SITE_URL as string | undefined) || "https://sochi.app",
 };
 
 // Only non-empty URLs render a store button.

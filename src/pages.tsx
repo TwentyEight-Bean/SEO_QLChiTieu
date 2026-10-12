@@ -629,14 +629,8 @@ export function getStructuredData(route: RouteDef | undefined, origin: string) {
           "@id": `${origin}/#software`,
           name: APP.name,
           applicationCategory: "FinanceApplication",
-          operatingSystem: "iOS, Android",
           description: "Ghi chép thu chi 3 giây, biểu đồ thống kê trực quan và quản lý ngân sách cá nhân rõ ràng.",
           url: origin,
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "VND",
-          },
         },
       ],
     };

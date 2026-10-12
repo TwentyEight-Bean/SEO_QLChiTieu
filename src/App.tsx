@@ -1060,7 +1060,11 @@ export default function App() {
 
   useEffect(() => {
     const isNotFound = path !== "/" && !page;
-    const origin = APP.siteUrl || window.location.origin;
+    const origin =
+      (import.meta.env.VITE_SITE_URL as string | undefined) ||
+      (typeof window !== "undefined" && window.location.origin && !window.location.origin.includes("localhost")
+        ? window.location.origin
+        : APP.siteUrl);
     const ogImageUrl = `${origin}/og-image.jpg`;
 
     const setNamedMeta = (name: string, content: string) => {
@@ -1107,8 +1111,8 @@ export default function App() {
     setPropertyMeta("og:type", page?.kind === "article" ? "article" : "website");
     setPropertyMeta("og:url", canonicalUrl);
     setPropertyMeta("og:image", ogImageUrl);
-    setPropertyMeta("og:image:width", "1200");
-    setPropertyMeta("og:image:height", "630");
+    setPropertyMeta("og:image:width", "1376");
+    setPropertyMeta("og:image:height", "768");
     setPropertyMeta("og:site_name", APP.name);
     setPropertyMeta("og:locale", "vi_VN");
 
