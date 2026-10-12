@@ -194,8 +194,12 @@ function PhoneScreenLayer({ layer, initial }: { layer: ScreenLayer; initial: boo
       <img
         src={layer.src}
         alt={layer.alt}
+        width={320}
+        height={686}
         loading="lazy"
+        decoding="async"
         onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(false)}
         className={`absolute inset-0 z-[2] h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>

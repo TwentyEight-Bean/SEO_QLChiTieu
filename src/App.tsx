@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Phone from "./Phone";
 import { APP, CATEGORIES, FEATURES, MONTHS, STORES, TREND } from "./config";
-import ContentPage, { ALL_PAGES, PRODUCT_PAGES, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
+import ContentPage, { ALL_PAGES, PRODUCT_PAGES, NotFoundPage, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
 import { Link, usePath } from "./router";
 import { openPrelaunchSheet, storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
 import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
@@ -1013,9 +1013,29 @@ function Footer() {
         </div>
 
         {/* Disclaimer & Legal note */}
-        <div className="mt-12 border-t border-paper/10 pt-8 text-xs leading-relaxed text-paper/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <p>© {new Date().getFullYear()} {APP.name}. Mọi quyền được bảo lưu.</p>
-          <p>Số liệu và hình ảnh biểu đồ trong website mang tính minh họa giao diện sản phẩm.</p>
+        <div className="mt-12 border-t border-paper/10 pt-8 text-xs leading-relaxed text-paper/40 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <p>© {new Date().getFullYear()} {APP.name}. Mọi quyền được bảo lưu.</p>
+            <span className="hidden sm:inline text-paper/20">|</span>
+            <p>Số liệu và hình ảnh biểu đồ mang tính minh họa giao diện sản phẩm.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-xs text-paper/60">
+            <Link href="/chinh-sach-bao-mat" className="transition-colors hover:text-paper">
+              Chính sách bảo mật
+            </Link>
+            <span aria-hidden className="text-paper/20">·</span>
+            <Link href="/dieu-khoan-su-dung" className="transition-colors hover:text-paper">
+              Điều khoản sử dụng
+            </Link>
+            <span aria-hidden className="text-paper/20">·</span>
+            <Link href="/cau-hoi-thuong-gap" className="transition-colors hover:text-paper">
+              Câu hỏi thường gặp
+            </Link>
+            <span aria-hidden className="text-paper/20">·</span>
+            <Link href="/gioi-thieu" className="transition-colors hover:text-paper">
+              Về Sổ Chi
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
@@ -1039,10 +1059,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const meta = getPageMeta(page);
+    const isNotFound = path !== "/" && !page;
     const origin = APP.siteUrl || window.location.origin;
-    const canonicalPath = getCanonicalPath(page, path);
-    const canonicalUrl = `${origin}${canonicalPath === "/" ? "/" : canonicalPath}`;
+    const ogImageUrl = `${origin}/og-image.jpg`;
 
     const setNamedMeta = (name: string, content: string) => {
       let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
@@ -1065,13 +1084,38 @@ export default function App() {
     };
 
     document.documentElement.lang = "vi";
+
+    if (isNotFound) {
+      document.title = `404: Không tìm thấy trang | ${APP.name}`;
+      setNamedMeta("robots", "noindex, follow");
+      setNamedMeta("description", "Trang bạn tìm kiếm không tồn tại hoặc đã được thay đổi đường dẫn.");
+      document.querySelector<HTMLScriptElement>('script[data-seo-json="true"]')?.remove();
+      return;
+    }
+
+    // Clear noindex on valid routes
+    document.querySelector<HTMLMetaElement>('meta[name="robots"]')?.remove();
+
+    const meta = getPageMeta(page);
+    const canonicalPath = getCanonicalPath(page, path);
+    const canonicalUrl = `${origin}${canonicalPath === "/" ? "/" : canonicalPath}`;
+
     document.title = meta.title;
     setNamedMeta("description", meta.description);
     setPropertyMeta("og:title", meta.title);
     setPropertyMeta("og:description", meta.description);
     setPropertyMeta("og:type", page?.kind === "article" ? "article" : "website");
     setPropertyMeta("og:url", canonicalUrl);
-    setNamedMeta("twitter:card", "summary");
+    setPropertyMeta("og:image", ogImageUrl);
+    setPropertyMeta("og:image:width", "1200");
+    setPropertyMeta("og:image:height", "630");
+    setPropertyMeta("og:site_name", APP.name);
+    setPropertyMeta("og:locale", "vi_VN");
+
+    setNamedMeta("twitter:card", "summary_large_image");
+    setNamedMeta("twitter:title", meta.title);
+    setNamedMeta("twitter:description", meta.description);
+    setNamedMeta("twitter:image", ogImageUrl);
 
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
@@ -1107,7 +1151,7 @@ export default function App() {
       />
       {page ? (
         <ContentPage page={page} />
-      ) : (
+      ) : path === "/" ? (
         <main>
           <Hero />
           <Interface />
@@ -1116,6 +1160,8 @@ export default function App() {
           <Experience />
           <FinalReveal />
         </main>
+      ) : (
+        <NotFoundPage path={path} />
       )}
       <Footer />
       <MobilePrelaunchSheet

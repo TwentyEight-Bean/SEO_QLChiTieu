@@ -270,6 +270,100 @@ export const PRODUCT_PAGES: ProductPageDef[] = [
     benefits: ["Không thêm claim chưa xác thực.", "Giữ nội dung sản phẩm dễ đọc.", "Chuẩn bị nền tảng SEO trước khi phát hành."],
     related: ["/tinh-nang", "/ung-dung-quan-ly-chi-tieu", "/blog"],
   },
+  {
+    kind: "product",
+    path: "/chinh-sach-bao-mat",
+    nav: "Chính sách bảo mật",
+    title: `Chính sách bảo mật thông tin | ${APP.name}`,
+    description: `Chính sách bảo mật của ${APP.name}: cam kết bảo vệ dữ liệu tài chính cá nhân, quyền riêng tư và minh bạch khi thu thập email nhận thông báo ra mắt.`,
+    eyebrow: "Pháp lý & Quyền riêng tư",
+    h1: "Chính sách bảo mật thông tin",
+    intro: "Dữ liệu thu chi là thông tin nhạy cảm. Sổ Chi coi quyền riêng tư và sự an toàn dữ liệu của bạn là ưu tiên hàng đầu ngay từ giai đoạn chuẩn bị phát hành.",
+    screen: "thu-chi",
+    metrics: ["Riêng tư", "Minh bạch", "Mã hóa"],
+    sections: [
+      {
+        h: "Thu thập thông tin trong giai đoạn tiền phát hành",
+        p: [
+          "Website Sổ Chi hiện chỉ thu thập địa chỉ email khi bạn chủ động đăng ký nhận thông báo phát hành. Chúng tôi không thu thập thông tin tài khoản ngân hàng, mật khẩu hay danh bạ của bạn qua website.",
+          "Email của bạn chỉ được dùng cho mục đích duy nhất: gửi thông báo khi ứng dụng chính thức sẵn sàng trên App Store và Google Play. Không spam, không bán dữ liệu cho bên thứ ba.",
+        ],
+      },
+      {
+        h: "Nguyên tắc bảo vệ dữ liệu khi ứng dụng phát hành",
+        p: [
+          "Sổ Chi được thiết kế theo triết lý ưu tiên lưu trữ an toàn trên thiết bị của người dùng (local-first). Khi ứng dụng ra mắt, các khoản thu chi do bạn ghi chép được quản lý an toàn và không bị công khai.",
+          "Mọi kết nối đồng bộ nếu có trong tương lai đều được bảo vệ bằng các giao thức mã hóa tiêu chuẩn ngành.",
+        ],
+        list: [
+          "Không yêu cầu liên kết trực tiếp tài khoản ngân hàng khi không cần thiết.",
+          "Dữ liệu thu chi thuộc toàn quyền sở hữu của người dùng.",
+          "Người dùng có thể xóa toàn bộ dữ liệu hoặc yêu cầu hủy đăng ký nhận email bất kỳ lúc nào.",
+        ],
+      },
+      {
+        h: "Quyền của người dùng và thông tin liên hệ",
+        p: [
+          "Bạn có quyền yêu cầu tra cứu, điều chỉnh hoặc hủy thông tin email đã đăng ký bất kỳ lúc nào bằng cách phản hồi lại email thông báo của chúng tôi hoặc liên hệ ban biên tập.",
+        ],
+      },
+    ],
+    benefits: [
+      "Không chia sẻ dữ liệu cho đối tác quảng cáo.",
+      "Tôn trọng tối đa tính riêng tư của dòng tiền cá nhân.",
+      "Thông tin rõ ràng trước khi người dùng cài đặt ứng dụng.",
+    ],
+    faq: [
+      { q: "Sổ Chi có đọc tin nhắn biến động số dư ngân hàng không?", a: "Sổ Chi là ứng dụng ghi chép thu chi thủ công và chủ động. Website và ứng dụng không tự ý truy cập trái phép tin nhắn SMS ngân hàng của người dùng." },
+      { q: "Làm thế nào để hủy nhận email thông báo ra mắt?", a: "Mỗi email gửi từ Sổ Chi đều có liên kết hủy nhận bản tin ở cuối thư, hoặc bạn có thể gửi yêu cầu hỗ trợ đến ban biên tập." },
+    ],
+    related: ["/dieu-khoan-su-dung", "/cau-hoi-thuong-gap", "/gioi-thieu"],
+  },
+  {
+    kind: "product",
+    path: "/dieu-khoan-su-dung",
+    nav: "Điều khoản sử dụng",
+    title: `Điều khoản sử dụng dịch vụ | ${APP.name}`,
+    description: `Điều khoản sử dụng website và ứng dụng ${APP.name}: quy định về quyền sở hữu trí tuệ, bản quyền nội dung và giới hạn trách nhiệm.`,
+    eyebrow: "Pháp lý & Thỏa thuận",
+    h1: "Điều khoản sử dụng dịch vụ",
+    intro: "Các điều khoản điều chỉnh việc bạn truy cập website giới thiệu sản phẩm và sử dụng ứng dụng Sổ Chi sau khi chính thức phát hành.",
+    screen: "thu-chi",
+    metrics: ["Bản quyền", "Trách nhiệm", "Minh bạch"],
+    sections: [
+      {
+        h: "Phạm vi áp dụng và đối tượng phục vụ",
+        p: [
+          "Website này được phát triển nhằm mục đích giới thiệu sản phẩm, cung cấp kiến thức quản lý tài chính cá nhân và tiếp nhận đăng ký nhận thông báo ra mắt cho ứng dụng Sổ Chi.",
+          "Bằng việc truy cập website, bạn đồng ý với các điều khoản được quy định tại đây.",
+        ],
+      },
+      {
+        h: "Tính chất thông tin và số liệu minh họa",
+        p: [
+          "Mọi con số, biểu đồ thống kê và màn hình minh họa trên website là tài liệu giới thiệu giao diện sản phẩm trong giai đoạn chuẩn bị phát hành. Chúng không cấu thành lời khuyên đầu tư tài chính chuyên nghiệp hay cam kết lợi nhuận.",
+          "Người dùng tự chịu trách nhiệm về các quyết định chi tiêu và quản lý ngân sách cá nhân của mình.",
+        ],
+      },
+      {
+        h: "Sở hữu trí tuệ và bản quyền",
+        p: [
+          "Toàn bộ nhãn hiệu, logo Sổ Chi, thiết kế giao diện, hoạt họa 2.5D và các bài viết trên blog thuộc bản quyền của đội ngũ phát triển Sổ Chi.",
+          "Mọi hành vi sao chép, trích dẫn nội dung vì mục đích thương mại mà không có sự đồng ý bằng văn bản đều bị nghiêm cấm.",
+        ],
+      },
+    ],
+    benefits: [
+      "Quy định rõ ràng quyền lợi và nghĩa vụ hai bên.",
+      "Bảo vệ người dùng trước các thông tin sai lệch.",
+      "Minh bạch hóa các giới hạn pháp lý và bản quyền.",
+    ],
+    faq: [
+      { q: "Sổ Chi có cung cấp dịch vụ cho vay hay tín dụng không?", a: "Không. Sổ Chi là công cụ quản lý chi tiêu và ngân sách cá nhân, hoàn toàn không cung cấp dịch vụ tín dụng, cho vay hay huy động vốn." },
+      { q: "Điều khoản này có thể thay đổi không?", a: "Chúng tôi có thể cập nhật điều khoản khi ứng dụng có tính năng mới. Mọi thay đổi sẽ được công bố công khai trên trang này." },
+    ],
+    related: ["/chinh-sach-bao-mat", "/cau-hoi-thuong-gap", "/gioi-thieu"],
+  },
 ];
 
 /* ---------- Articles ---------- */
@@ -511,18 +605,46 @@ export function getStructuredData(route: RouteDef | undefined, origin: string) {
   if (!route) {
     return {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: APP.name,
-      applicationCategory: "FinanceApplication",
-      operatingSystem: "iOS, Android",
-      description: getPageMeta(undefined).description,
-      url: origin,
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": `${origin}/#website`,
+          name: APP.name,
+          url: origin,
+          inLanguage: "vi-VN",
+          description: "Ứng dụng quản lý chi tiêu cá nhân tối giản: ghi chép thu chi nhanh gọn trong 3 giây, xem thống kê trực quan và quản lý ngân sách chủ động.",
+        },
+        {
+          "@type": "Organization",
+          "@id": `${origin}/#organization`,
+          name: APP.name,
+          url: origin,
+          logo: {
+            "@type": "ImageObject",
+            url: `${origin}/favicon.svg`,
+          },
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": `${origin}/#software`,
+          name: APP.name,
+          applicationCategory: "FinanceApplication",
+          operatingSystem: "iOS, Android",
+          description: "Ghi chép thu chi 3 giây, biểu đồ thống kê trực quan và quản lý ngân sách cá nhân rõ ràng.",
+          url: origin,
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "VND",
+          },
+        },
+      ],
     };
   }
 
   const breadcrumb = {
-    "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    "@id": `${origin}${route.path}#breadcrumb`,
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Trang chủ", item: `${origin}/` },
       { "@type": "ListItem", position: 2, name: route.kind === "article" ? "Blog" : route.nav, item: `${origin}${route.kind === "article" ? "/blog" : route.path}` },
@@ -530,32 +652,64 @@ export function getStructuredData(route: RouteDef | undefined, origin: string) {
     ],
   };
 
-  if (route.kind === "blog") return breadcrumb;
-
-  if (route.kind === "article") {
-    return [
-      breadcrumb,
-      {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        headline: route.title,
-        description: route.description,
-        datePublished: route.date,
-        dateModified: route.updatedAt ?? route.date,
-        inLanguage: "vi-VN",
-        author: { "@type": "Person", name: route.author },
-        publisher: { "@type": "Organization", name: APP.name },
-        mainEntityOfPage: `${origin}${route.path}`,
-      },
-    ];
+  if (route.kind === "blog") {
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        breadcrumb,
+        {
+          "@type": "CollectionPage",
+          "@id": `${origin}/blog#collection`,
+          name: route.title,
+          description: route.description,
+          url: `${origin}/blog`,
+          inLanguage: "vi-VN",
+        },
+      ],
+    };
   }
 
-  // Product page — breadcrumb + optional FAQPage
+  if (route.kind === "article") {
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        breadcrumb,
+        {
+          "@type": "Article",
+          "@id": `${origin}${route.path}#article`,
+          headline: route.title,
+          description: route.description,
+          image: `${origin}/og-image.jpg`,
+          datePublished: route.date,
+          dateModified: route.updatedAt ?? route.date,
+          inLanguage: "vi-VN",
+          author: {
+            "@type": "Person",
+            name: route.author,
+          },
+          publisher: {
+            "@type": "Organization",
+            name: APP.name,
+            logo: {
+              "@type": "ImageObject",
+              url: `${origin}/favicon.svg`,
+            },
+          },
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": `${origin}${route.path}`,
+          },
+        },
+      ],
+    };
+  }
+
+  // Product / Legal page — breadcrumb + optional FAQPage
   const schemas: object[] = [breadcrumb];
   if (route.faq && route.faq.length > 0) {
     schemas.push({
-      "@context": "https://schema.org",
       "@type": "FAQPage",
+      "@id": `${origin}${route.path}#faq`,
       mainEntity: route.faq.map((item) => ({
         "@type": "Question",
         name: item.q,
@@ -563,7 +717,10 @@ export function getStructuredData(route: RouteDef | undefined, origin: string) {
       })),
     });
   }
-  return schemas.length === 1 ? schemas[0] : schemas;
+  return {
+    "@context": "https://schema.org",
+    "@graph": schemas,
+  };
 }
 
 /* ---------- Shared components ---------- */
@@ -1041,8 +1198,49 @@ function formatDate(date: string) {
   return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
 }
 
+export function NotFoundPage({ path }: { path: string }) {
+  return (
+    <main className="min-h-svh bg-ink text-paper flex items-center justify-center px-6 py-32">
+      <div className="mx-auto max-w-xl text-center">
+        <p className="flex items-center justify-center gap-3 text-[11px] font-medium uppercase tracking-[0.28em] text-paper/60">
+          <span className="font-display text-base text-vermilion">404</span>
+          <span className="h-px w-8 bg-current opacity-40" />
+          Lỗi điều hướng
+        </p>
+        <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,4.5rem)] font-light leading-[1.08]">
+          Không tìm thấy trang
+        </h1>
+        <p className="mt-5 text-base leading-relaxed text-paper/70">
+          Đường dẫn <code className="rounded bg-paper/10 px-2 py-0.5 text-vermilion text-sm">{path}</code> không tồn tại hoặc đã được thay đổi.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <Link
+            href="/"
+            className="inline-flex min-h-12 items-center rounded-full bg-vermilion px-7 py-3 text-xs uppercase tracking-[0.16em] font-medium text-paper shadow-lg shadow-vermilion/30 transition-transform active:scale-95"
+          >
+            ← Về trang chủ
+          </Link>
+          <Link
+            href="/tinh-nang"
+            className="inline-flex min-h-12 items-center rounded-full border border-paper/20 px-7 py-3 text-xs uppercase tracking-[0.16em] text-paper/80 transition-colors hover:border-paper hover:text-paper"
+          >
+            Xem tính năng
+          </Link>
+          <Link
+            href="/blog"
+            className="inline-flex min-h-12 items-center rounded-full border border-paper/20 px-7 py-3 text-xs uppercase tracking-[0.16em] text-paper/80 transition-colors hover:border-paper hover:text-paper"
+          >
+            Đọc Blog
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function ContentPage({ page }: { page: RouteDef }) {
   if (page.kind === "blog") return <BlogIndex />;
   if (page.kind === "article") return <ArticlePage article={page} />;
   return <ProductPage page={page} />;
 }
+

@@ -1,7 +1,7 @@
 // PLACEHOLDER CONTENT: replace with verified product data before launch.
 export const APP = {
   name: "Sổ Chi", // placeholder brand name
-  siteUrl: "", // canonical origin, e.g. https://example.vn
+  siteUrl: "https://sochi.app", // canonical origin
 };
 
 // Only non-empty URLs render a store button.
