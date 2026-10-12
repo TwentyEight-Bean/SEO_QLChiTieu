@@ -3,13 +3,15 @@ import Phone from "./Phone";
 import { APP, CATEGORIES, FEATURES, MONTHS, STORES, TREND } from "./config";
 import ContentPage, { ALL_PAGES, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
 import { Link, usePath } from "./router";
-import { storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
+import { openPrelaunchSheet, storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
+import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
+import MobileStickyCta from "./components/MobileStickyCta";
 
 const d = (s: number): CSSProperties => ({ animationDelay: `${s}s` });
 const [F1, F2, F3] = FEATURES;
 const HAS_STORE_LINKS = Boolean(STORES.appStore || STORES.googlePlay);
 const PRIMARY_CTA_LABEL = HAS_STORE_LINKS ? "Tải ứng dụng" : "Nhận thông báo khi ra mắt";
-const SHORT_CTA_LABEL = HAS_STORE_LINKS ? "Tải ứng dụng" : "Nhận thông báo";
+const SHORT_CTA_LABEL = HAS_STORE_LINKS ? "Tải ứng dụng" : "Nhận thông báo khi ra mắt";
 
 /* ---------- shared ---------- */
 function Eyebrow({ n, children }: { n: string; children: React.ReactNode }) {
@@ -26,39 +28,65 @@ function PrelaunchSignup({ source, compact = false }: { source: string; compact?
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <form
-      className={`prelaunch-form ${compact ? "is-compact" : ""}`}
-      onSubmit={(event) => {
-        event.preventDefault();
-        setSubmitted(true);
-        track("prelaunch_signup", { source });
-      }}
-    >
-      <div>
-        <label htmlFor={`prelaunch-email-${source}`}>Nhận thông báo khi Sổ Chi ra mắt</label>
-        <p id={`prelaunch-note-${source}`}>
-          Chúng tôi sẽ gửi một email ngắn khi ứng dụng sẵn sàng. Không có liên kết store giả, không làm phiền.
+    <div className="w-full max-w-lg">
+      {/* Mobile Refined Pre-launch CTA Experience (< md) */}
+      <div className="md:hidden space-y-3.5">
+        <p className="text-sm font-light leading-relaxed text-paper/75">
+          Sổ Chi đang chuẩn bị phát hành. Để lại email để được báo khi ứng dụng sẵn sàng.
         </p>
+        <button
+          type="button"
+          onClick={() => {
+            track("final_cta_click", { source: `${source}_mobile` });
+            openPrelaunchSheet(source);
+          }}
+          className="group relative flex min-h-12 w-full cursor-pointer items-center justify-between rounded-full bg-vermilion px-6 py-3.5 text-sm font-medium text-paper shadow-lg shadow-vermilion/25 transition-transform duration-200 active:scale-[0.98]"
+        >
+          <span>Nhận thông báo khi ra mắt</span>
+          <span
+            className="text-base transition-transform duration-200 group-hover:translate-x-1 group-active:translate-x-1"
+            aria-hidden
+          >
+            →
+          </span>
+        </button>
       </div>
-      <div className="prelaunch-form-row">
-        <input
-          id={`prelaunch-email-${source}`}
-          name="email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          placeholder="Email của bạn"
-          aria-describedby={`prelaunch-note-${source}`}
-          required
-        />
-        <button type="submit">{submitted ? "Đã ghi nhận" : "Nhận thông báo"}</button>
-      </div>
-      {submitted && (
-        <p className="prelaunch-form-status" role="status">
-          Cảm ơn bạn. Sổ Chi sẽ báo khi bản phát hành chính thức sẵn sàng.
-        </p>
-      )}
-    </form>
+
+      {/* Desktop Inline Form (>= md) */}
+      <form
+        className={`hidden md:block prelaunch-form ${compact ? "is-compact" : ""}`}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmitted(true);
+          track("prelaunch_signup", { source });
+        }}
+      >
+        <div>
+          <label htmlFor={`prelaunch-email-${source}`}>Nhận thông báo khi Sổ Chi ra mắt</label>
+          <p id={`prelaunch-note-${source}`}>
+            Chúng tôi sẽ gửi một email ngắn khi ứng dụng sẵn sàng. Không có liên kết store giả, không làm phiền.
+          </p>
+        </div>
+        <div className="prelaunch-form-row">
+          <input
+            id={`prelaunch-email-${source}`}
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="Email của bạn"
+            aria-describedby={`prelaunch-note-${source}`}
+            required
+          />
+          <button type="submit">{submitted ? "Đã ghi nhận" : "Nhận thông báo"}</button>
+        </div>
+        {submitted && (
+          <p className="prelaunch-form-status" role="status">
+            Cảm ơn bạn. Sổ Chi sẽ báo khi bản phát hành chính thức sẵn sàng.
+          </p>
+        )}
+      </form>
+    </div>
   );
 }
 
@@ -220,7 +248,15 @@ const MENU_ITEMS: MenuItemData[] = [
   },
 ];
 
-function Nav({ showJourney }: { showJourney: boolean }) {
+function Nav({
+  showJourney,
+  isSheetOpen = false,
+  onOpenSheet,
+}: {
+  showJourney: boolean;
+  isSheetOpen?: boolean;
+  onOpenSheet?: () => void;
+}) {
   const [activeScene, setActiveScene] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -365,16 +401,21 @@ function Nav({ showJourney }: { showJourney: boolean }) {
                 </li>
               ))}
             </ol>
-            <Link
-              href="/#tai-ung-dung"
+            <button
+              type="button"
               onClick={() => {
                 setMenuOpen(false);
                 track("hero_download_click", { source: "mobile_menu" });
+                if (onOpenSheet) {
+                  onOpenSheet();
+                } else {
+                  openPrelaunchSheet("mobile_menu");
+                }
               }}
-              className="mobile-menu-cta"
+              className="mobile-menu-cta w-full cursor-pointer border-0"
             >
-              {PRIMARY_CTA_LABEL} <span aria-hidden>→</span>
-            </Link>
+              <span>{PRIMARY_CTA_LABEL}</span> <span aria-hidden>→</span>
+            </button>
           </nav>
         </div>
 
@@ -566,15 +607,11 @@ function Nav({ showJourney }: { showJourney: boolean }) {
           ))}
         </nav>
       )}
-      {!menuOpen && (
-        <a
-          href="/#tai-ung-dung"
-          onClick={() => track("hero_download_click", { source: "sticky_mobile" })}
-          className="mobile-sticky-cta fixed inset-x-4 z-50 mx-auto flex min-h-12 max-w-sm items-center justify-center rounded-full bg-vermilion text-sm font-medium text-paper shadow-xl md:hidden"
-        >
-          {SHORT_CTA_LABEL}
-        </a>
-      )}
+      <MobileStickyCta
+        onOpenSheet={onOpenSheet || (() => openPrelaunchSheet("sticky_mobile"))}
+        isSheetOpen={isSheetOpen}
+        menuOpen={menuOpen}
+      />
     </>
   );
 }
@@ -921,6 +958,18 @@ function Footer() {
 export default function App() {
   const path = usePath();
   const page = getRoute(path);
+  const [isPrelaunchOpen, setIsPrelaunchOpen] = useState(false);
+  const [prelaunchSource, setPrelaunchSource] = useState("mobile");
+
+  useEffect(() => {
+    const handleOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ source?: string }>).detail;
+      if (detail?.source) setPrelaunchSource(detail.source);
+      setIsPrelaunchOpen(true);
+    };
+    window.addEventListener("sochi:open-prelaunch-sheet", handleOpen);
+    return () => window.removeEventListener("sochi:open-prelaunch-sheet", handleOpen);
+  }, []);
 
   useEffect(() => {
     const meta = getPageMeta(page);
@@ -981,7 +1030,14 @@ export default function App() {
 
   return (
     <>
-      <Nav showJourney={!page} />
+      <Nav
+        showJourney={!page}
+        isSheetOpen={isPrelaunchOpen}
+        onOpenSheet={() => {
+          setPrelaunchSource("sticky_mobile");
+          setIsPrelaunchOpen(true);
+        }}
+      />
       {page ? (
         <ContentPage page={page} />
       ) : (
@@ -995,6 +1051,11 @@ export default function App() {
         </main>
       )}
       <Footer />
+      <MobilePrelaunchSheet
+        isOpen={isPrelaunchOpen}
+        onClose={() => setIsPrelaunchOpen(false)}
+        source={prelaunchSource}
+      />
     </>
   );
 }

@@ -10,6 +10,7 @@ import BudgetShowcase from "./components/BudgetShowcase";
 import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
 import DataExpansionSequence from "./components/DataExpansionSequence";
 import StatisticsVisualStories from "./components/StatisticsVisualStories";
+import { openPrelaunchSheet } from "./lib";
 
 type FeatureId = (typeof FEATURES)[number]["id"];
 const HAS_STORE_LINKS = Boolean(STORES.appStore || STORES.googlePlay);
@@ -688,7 +689,17 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
           <aside className="cta-panel">
             <p>Áp dụng với {APP.name}</p>
             <h2>Hiểu rõ tiền của bạn. Bắt đầu từ những khoản nhỏ nhất.</h2>
-            <Link href="/#tai-ung-dung">{PRODUCT_CTA_LABEL} <span aria-hidden>→</span></Link>
+            <Link
+              href="/#tai-ung-dung"
+              onClick={(e) => {
+                if (window.innerWidth < 768) {
+                  e.preventDefault();
+                  openPrelaunchSheet("product_page_cta");
+                }
+              }}
+            >
+              {PRODUCT_CTA_LABEL} <span aria-hidden>→</span>
+            </Link>
           </aside>
         </article>
       </div>

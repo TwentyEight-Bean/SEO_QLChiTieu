@@ -15,6 +15,11 @@ export function track(name: EventName, params: Record<string, string> = {}) {
   window.dispatchEvent(new CustomEvent("analytics", { detail: { name, ...params } }));
 }
 
+export function openPrelaunchSheet(source = "mobile") {
+  window.dispatchEvent(new CustomEvent("sochi:open-prelaunch-sheet", { detail: { source } }));
+}
+
+
 export function storeUrl(kind: keyof typeof STORES, content: string) {
   const base = STORES[kind];
   if (!base) return "";

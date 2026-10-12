@@ -3,6 +3,7 @@ import { Link } from "../router";
 import { type ProductPageDef, type RouteDef, ALL_PAGES } from "../pages";
 import { CATEGORIES } from "../config";
 import DeviceMockup from "./DeviceMockup";
+import { openPrelaunchSheet } from "../lib";
 
 // --- Types & Data for Timeline Section A ---
 type TimelineView = "day" | "week" | "month";
@@ -755,7 +756,13 @@ export default function StatisticsVisualStories({ page }: { page: ProductPageDef
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <Link
                   href="/#tai-ung-dung"
-                  className="inline-flex cursor-pointer items-center gap-3 rounded-full bg-vermilion px-8 py-4 text-sm uppercase tracking-[0.16em] font-medium text-paper shadow-xl shadow-vermilion/40 transition-all duration-300 hover:bg-vermilion-bright hover:shadow-2xl hover:scale-105"
+                  onClick={(e) => {
+                    if (window.innerWidth < 768) {
+                      e.preventDefault();
+                      openPrelaunchSheet("stats_stories");
+                    }
+                  }}
+                  className="inline-flex cursor-pointer items-center gap-3 rounded-full bg-vermilion px-8 py-4 text-sm uppercase tracking-[0.16em] font-medium text-paper shadow-xl shadow-vermilion/40 transition-all duration-300 hover:bg-vermilion-bright hover:shadow-2xl hover:scale-105 active:scale-[0.98]"
                 >
                   Nhận thông báo khi ra mắt <span aria-hidden>→</span>
                 </Link>
