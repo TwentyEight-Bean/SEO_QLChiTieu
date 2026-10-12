@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Phone from "./Phone";
+import { lazy, Suspense } from "react";
 import { APP, CATEGORIES, FEATURES, MONTHS, STORES, TREND } from "./config";
-import ContentPage, { ALL_PAGES, PRODUCT_PAGES, NotFoundPage, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pages";
 import { Link, usePath } from "./router";
+import { ALL_PAGES, PRODUCT_PAGES, getCanonicalPath, getPageMeta, getRoute, getStructuredData } from "./pagesData";
+
+const LazyContentPage = lazy(() => import("./pages"));
+const LazyNotFoundPage = lazy(() => import("./pages").then((m) => ({ default: m.NotFoundPage })));
 import { openPrelaunchSheet, storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
 import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
 import MobileStickyCta from "./components/MobileStickyCta";
@@ -623,17 +627,17 @@ function Hero() {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_45%,#2a211c_0%,#0c0a09_62%)]" />
       <div className="mx-auto grid w-full max-w-[1500px] items-center gap-10 px-6 pb-28 pt-28 md:grid-cols-[1.05fr_1fr] md:px-10 md:pb-16">
         <div className="order-1 md:order-1">
-          <div className="hero-fade" style={d(0.05)}>
+          <div>
             <Eyebrow n="一">Ứng dụng quản lý chi tiêu</Eyebrow>
           </div>
           <h1 id="h1" className="mt-8 font-display text-[clamp(2.2rem,6.2vw,6.2rem)] font-light leading-[1.06] tracking-[-0.01em] [text-wrap:balance]">
-            <span className="mask block overflow-hidden pb-1"><span style={d(0.1)}>Chi tiêu rõ ràng.</span></span>
-            <span className="mask block overflow-hidden pb-2"><span style={d(0.22)} className="italic text-vermilion">Cuộc sống chủ động.</span></span>
+            <span className="block pb-1">Chi tiêu rõ ràng.</span>
+            <span className="block pb-2 italic text-vermilion">Cuộc sống chủ động.</span>
           </h1>
-          <p className="hero-fade mt-7 max-w-md text-lg font-light leading-relaxed text-paper/75" style={d(0.35)}>
+          <p className="mt-7 max-w-md text-lg font-light leading-relaxed text-paper/75">
             Mọi khoản thu chi, trong một trải nghiệm đơn giản.
           </p>
-          <div className="hero-fade mt-10 flex flex-wrap items-center gap-4" style={d(0.45)}>
+          <div className="mt-10 flex flex-wrap items-center gap-4">
             <a
               href="#tai-ung-dung"
               onClick={() => track("hero_download_click", { source: "hero" })}
@@ -1042,7 +1046,17 @@ function Footer() {
   );
 }
 
-export default function App({ initialPath }: { initialPath?: string } = {}) {
+export default function App({
+  initialPath,
+  ContentComponent,
+  NotFoundComponent,
+}: {
+  initialPath?: string;
+  ContentComponent?: React.ComponentType<{ page: any }>;
+  NotFoundComponent?: React.ComponentType<{ path: string }>;
+} = {}) {
+  const ResolvedContentPage = ContentComponent || LazyContentPage;
+  const ResolvedNotFoundPage = NotFoundComponent || LazyNotFoundPage;
   const path = usePath(initialPath);
   const page = getRoute(path);
   const [isPrelaunchOpen, setIsPrelaunchOpen] = useState(false);
@@ -1150,7 +1164,9 @@ export default function App({ initialPath }: { initialPath?: string } = {}) {
         }}
       />
       {page ? (
-        <ContentPage page={page} />
+        <Suspense fallback={<div className="min-h-screen bg-ink" />}>
+          <ResolvedContentPage page={page} />
+        </Suspense>
       ) : path === "/" ? (
         <main>
           <Hero />
@@ -1161,7 +1177,9 @@ export default function App({ initialPath }: { initialPath?: string } = {}) {
           <FinalReveal />
         </main>
       ) : (
-        <NotFoundPage path={path} />
+        <Suspense fallback={<div className="min-h-screen bg-ink" />}>
+          <ResolvedNotFoundPage path={path} />
+        </Suspense>
       )}
       <Footer />
       <MobilePrelaunchSheet

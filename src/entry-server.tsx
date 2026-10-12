@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import App from "./App";
-import {
+import ContentPage, {
+  NotFoundPage,
   getRoute,
   getPageMeta,
   getCanonicalPath,
@@ -24,7 +25,13 @@ export function render(path: string, origin: string) {
   const canonicalUrl = `${origin}${canonicalPath === "/" ? "/" : canonicalPath}`;
   const structuredData = !isNotFound ? getStructuredData(page, origin) : null;
 
-  const appHtml = renderToString(<App initialPath={path} />);
+  const appHtml = renderToString(
+    <App
+      initialPath={path}
+      ContentComponent={ContentPage}
+      NotFoundComponent={NotFoundPage}
+    />
+  );
 
   return {
     appHtml,

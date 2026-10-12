@@ -1,6 +1,5 @@
 import { useState, useId } from "react";
 import { Link } from "../router";
-import { type ProductPageDef, type RouteDef, ALL_PAGES } from "../pages";
 import { CATEGORIES } from "../config";
 import DeviceMockup from "./DeviceMockup";
 import { openPrelaunchSheet } from "../lib";

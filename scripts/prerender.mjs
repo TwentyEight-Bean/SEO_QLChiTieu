@@ -3,6 +3,8 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
+import { getCriticalCss } from './build-critical.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
@@ -11,22 +13,31 @@ async function prerender() {
   console.log('\n--- SỔ CHI PRERENDER (SSG) BUILD PIPELINE ---');
 
   // 1. Validate Canonical Production Origin
-  const envSiteUrl = process.env.VITE_SITE_URL?.trim();
-  let siteUrl = envSiteUrl || 'https://sochi.app';
+  let envSiteUrl = process.env.VITE_SITE_URL?.trim();
 
   if (!envSiteUrl) {
-    console.warn('\x1b[33m%s\x1b[0m', '[SEO WARNING] VITE_SITE_URL environment variable is not defined for production build.');
-    console.warn('\x1b[33m%s\x1b[0m', `[SEO WARNING] Falling back to default production canonical origin: ${siteUrl}`);
-  } else {
-    console.log(`[SEO INFO] Using configured VITE_SITE_URL: ${siteUrl}`);
+    const envProdPath = path.resolve(rootDir, '.env.production');
+    if (fs.existsSync(envProdPath)) {
+      const content = fs.readFileSync(envProdPath, 'utf8');
+      const match = content.match(/^VITE_SITE_URL=(.+)$/m);
+      if (match) envSiteUrl = match[1].trim();
+    }
   }
 
+  if (!envSiteUrl) {
+    throw new Error(
+      '[SEO BUILD ERROR] Missing required production canonical origin!\n' +
+      'VITE_SITE_URL must be explicitly configured in environment variables or in .env.production for production builds.\n' +
+      'Silently falling back to an unverified origin or allowing localhost/preview domains is strictly prohibited.'
+    );
+  }
+
+  const siteUrl = envSiteUrl.replace(/\/$/, '');
   if (!siteUrl.startsWith('https://') || siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) {
-    throw new Error(`[SEO ERROR] Refusing to build production canonical URLs with non-HTTPS or localhost origin: "${siteUrl}"`);
+    throw new Error(`[SEO BUILD ERROR] Invalid production origin: "${siteUrl}". Production canonical URLs must use HTTPS and cannot be localhost.`);
   }
 
-  // Ensure origin has no trailing slash
-  siteUrl = siteUrl.replace(/\/$/, '');
+  console.log(`[SEO INFO] Validated production canonical origin: ${siteUrl}`);
 
   // 2. Build SSR Bundle
   console.log('[SSG 1/5] Building SSR bundle with Vite...');
@@ -45,6 +56,7 @@ async function prerender() {
     throw new Error(`Base template not found at ${templatePath}. Run "vite build" first.`);
   }
   const baseTemplate = fs.readFileSync(templatePath, 'utf8');
+  const criticalCss = getCriticalCss(rootDir);
 
   // Collect all target routes
   const routesToPrerender = Array.from(new Set([...ROUTE_PATHS, '/404']));
@@ -55,6 +67,28 @@ async function prerender() {
     const { appHtml, meta, canonicalUrl, structuredData, isNotFound } = render(route, siteUrl);
 
     let html = baseTemplate;
+
+    // Transform CSS Link: inline minimal critical CSS and defer non-blocking full stylesheet
+    const cssMatch = html.match(/<link\s+rel="stylesheet"\s+crossorigin\s+href="([^"]+)"\s*\/?>/i)
+      || html.match(/<link\s+rel="stylesheet"\s+href="([^"]+)"\s*\/?>/i);
+    if (cssMatch) {
+      const cssHref = cssMatch[1];
+      const nonBlockingCss = `  <style id="critical-css">\n${criticalCss}\n  </style>\n` +
+        `  <link rel="preload" href="${cssHref}" as="style" onload="this.onload=null;this.rel='stylesheet'" />\n` +
+        `  <noscript><link rel="stylesheet" href="${cssHref}" /></noscript>\n`;
+      html = html.replace(cssMatch[0], nonBlockingCss);
+    }
+
+    // Relocate client script to bottom of <body> so it doesn't compete with head critical path
+    const scriptMatch = html.match(/<script\s+type="module"\s+crossorigin\s+src="([^"]+)"\s*><\/script>/i);
+    if (scriptMatch) {
+      const headIdx = html.indexOf('</head>');
+      const scriptIdx = html.indexOf(scriptMatch[0]);
+      if (scriptIdx !== -1 && scriptIdx < headIdx) {
+        html = html.replace(scriptMatch[0], '');
+        html = html.replace('</body>', `  ${scriptMatch[0]}\n</body>`);
+      }
+    }
 
     // Replace Title
     html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(meta.title)}</title>`);
