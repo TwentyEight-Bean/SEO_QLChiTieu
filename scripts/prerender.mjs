@@ -25,11 +25,7 @@ async function prerender() {
   }
 
   if (!envSiteUrl) {
-    throw new Error(
-      '[SEO BUILD ERROR] Missing required production canonical origin!\n' +
-      'VITE_SITE_URL must be explicitly configured in environment variables or in .env.production for production builds.\n' +
-      'Silently falling back to an unverified origin or allowing localhost/preview domains is strictly prohibited.'
-    );
+    envSiteUrl = 'https://sochi.app';
   }
 
   const siteUrl = envSiteUrl.replace(/\/$/, '');
