@@ -1,20 +1,229 @@
 import { useState, useEffect } from "react";
-import DeviceMockup from "./DeviceMockup";
+import DeviceMockup, { type FloatingChip } from "./DeviceMockup";
 
-interface DemoTransaction {
-  id: string;
-  icon: string;
-  name: string;
-  meta: string;
-  value: string;
-  tone: "red" | "green" | "gold";
+function InteractivePhoneScreen({ step }: { step: number }) {
+  const hasNewTx = step >= 2;
+  const isCategoryLit = step === 3;
+  const isBalanceUpdated = step === 4;
+
+  const baseline = [
+    { icon: "Ă", name: "Bữa trưa", meta: "Ăn uống · Hôm nay", value: "−85.000 ₫", tone: "red" },
+    { icon: "L", name: "Lương tháng", meta: "Thu nhập · Hôm qua", value: "+18.500.000 ₫", tone: "green" },
+    { icon: "X", name: "Xăng xe", meta: "Di chuyển · 12 Thg 7", value: "−120.000 ₫", tone: "gold" },
+  ];
+
+  return (
+    <div className="absolute inset-0 z-[6] select-none overflow-hidden bg-[#f7f2e7] text-ink">
+      <div className="mock-app relative h-full">
+        {/* Mock Status Bar */}
+        <div className="mock-status" aria-hidden>
+          <span>09:41</span>
+          <span className="mock-status-icons">
+            <i className="mock-signal"><b /><b /><b /></i>
+            <i className="mock-wifi" />
+            <i className="mock-battery"><b /></i>
+          </span>
+        </div>
+
+        {/* Header */}
+        <div className="mock-header">
+          <div>
+            <span className="mock-eyebrow">Xin chào,</span>
+            <strong className="mock-title">Minh Anh</strong>
+          </div>
+          <span className="mock-avatar">SC</span>
+        </div>
+
+        {/* Balance Card with Vivid Reactive States */}
+        <div
+          className={`balance-card transition-all duration-500 ${
+            isBalanceUpdated
+              ? "ring-2 ring-emerald-400 bg-gradient-to-br from-[#122518] to-lacquer shadow-xl shadow-emerald-500/30 scale-[1.02]"
+              : ""
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span>Số dư hiện tại</span>
+            {isBalanceUpdated && (
+              <span className="rounded-full bg-emerald-500/25 border border-emerald-400/40 px-2 py-0.5 text-[0.7em] font-bold text-emerald-300 animate-pulse">
+                −45.000 ₫
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex items-baseline gap-1.5">
+            {isBalanceUpdated && (
+              <span className="text-[0.62em] font-sans line-through text-paper/40 transition-opacity">
+                24.680.000 ₫
+              </span>
+            )}
+            <strong className={`transition-all duration-500 ${isBalanceUpdated ? "text-emerald-200" : ""}`}>
+              {isBalanceUpdated ? "24.635.000 ₫" : "24.680.000 ₫"}
+            </strong>
+          </div>
+          <div className="balance-stats">
+            <span>
+              <i className="up">↑</i>
+              <small>Thu nhập</small>
+              <b>18,5 tr</b>
+            </span>
+            <span>
+              <i className="down">↓</i>
+              <small>Chi tiêu</small>
+              <b className={`transition-colors duration-500 ${isBalanceUpdated ? "text-rose-300 font-bold" : ""}`}>
+                {isBalanceUpdated ? "6,25 tr" : "6,2 tr"}
+              </b>
+            </span>
+          </div>
+        </div>
+
+        {/* Step 3: Dedicated Category Synchronization Banner inside phone */}
+        {isCategoryLit && (
+          <div className="mt-2 rounded-xl border border-gold/70 bg-gradient-to-r from-[#291b12] to-[#1a1410] p-2 text-paper shadow-lg transition-all duration-500 animate-fade-in">
+            <div className="flex items-center justify-between text-[0.72em]">
+              <span className="flex items-center gap-1.5 font-bold text-gold">
+                <span className="size-1.5 rounded-full bg-gold animate-ping" />
+                Chiếu sáng: Nhóm Ăn uống
+              </span>
+              <span className="text-vermilion font-bold">+45.000 ₫</span>
+            </div>
+            <div className="mt-0.5 flex items-center justify-between text-[0.64em] text-paper/75">
+              <span>Hôm nay: 130.000 ₫</span>
+              <span className="text-gold font-medium">38% ngân sách</span>
+            </div>
+            <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-paper/20">
+              <div className="h-full bg-gradient-to-r from-gold to-vermilion w-[38%] transition-all duration-700" />
+            </div>
+          </div>
+        )}
+
+        {/* Section Title */}
+        <div className="mock-section-title">
+          <strong>Giao dịch gần đây</strong>
+          <span className="flex items-center gap-1">
+            {step === 2 && (
+              <span className="text-vermilion font-semibold animate-pulse text-[0.9em]">
+                ● Vừa trượt vào (09:15)
+              </span>
+            )}
+            {step === 3 && (
+              <span className="text-gold font-semibold text-[0.9em]">
+                ✨ Nhóm Ăn uống
+              </span>
+            )}
+            {step === 4 && (
+              <span className="text-emerald-300 font-semibold text-[0.9em]">
+                ✓ Tổng chi: 180.000 ₫
+              </span>
+            )}
+            {(step === 0 || step === 1) && <span>Xem tất cả</span>}
+          </span>
+        </div>
+
+        {/* Transaction List */}
+        <div className="transaction-list relative">
+          {/* Step 1: In-phone 2.5D Transaction Input Modal Overlay */}
+          {step === 1 && (
+            <div className="absolute inset-x-0 -top-3 z-20 rounded-2xl border border-vermilion/70 bg-[#1c1511]/98 p-3 text-paper shadow-2xl backdrop-blur-md transition-all duration-300 animate-fade-in">
+              <div className="flex items-center justify-between border-b border-paper/15 pb-1.5 text-[0.72em]">
+                <span className="font-semibold uppercase tracking-wider text-vermilion flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-vermilion animate-ping" />
+                  Ghi chép siêu tốc
+                </span>
+                <span className="text-paper/60">09:15 sáng</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-vermilion text-[0.88em] font-bold text-paper shadow-md shadow-vermilion/40">
+                    Ă
+                  </span>
+                  <div>
+                    <strong className="block text-[0.92em] font-medium leading-tight">Cà phê sáng</strong>
+                    <span className="text-[0.7em] text-paper/60">Ăn uống · Tiền mặt</span>
+                  </div>
+                </div>
+                <strong className="font-display text-[1.2em] font-semibold text-vermilion">−45.000 ₫</strong>
+              </div>
+              <div className="mt-2.5 rounded-lg bg-paper/10 px-2 py-1 text-center text-[0.68em] text-paper/80 font-medium">
+                Chạm bước 03 để trượt vào sổ ↓
+              </div>
+            </div>
+          )}
+
+          {/* New Transaction: Slid in at Step 2, Category lit at Step 3, Settled at Step 4 */}
+          {hasNewTx && (
+            <div
+              className={`transaction transition-all duration-500 rounded-xl px-2 -mx-2 ${
+                step === 2
+                  ? "bg-vermilion/15 border border-vermilion/60 shadow-md shadow-vermilion/20 -translate-y-0.5 animate-fade-in"
+                  : isCategoryLit
+                  ? "bg-gradient-to-r from-amber-500/20 to-vermilion/20 border border-gold/70 shadow-lg shadow-gold/30"
+                  : "bg-paper/5 border border-paper/10"
+              }`}
+            >
+              <span
+                className={`transaction-icon red transition-all duration-500 ${
+                  isCategoryLit
+                    ? "ring-2 ring-gold bg-vermilion text-paper scale-110 shadow-lg shadow-vermilion/80 animate-pulse"
+                    : step === 2
+                    ? "ring-1 ring-vermilion bg-vermilion text-paper"
+                    : ""
+                }`}
+              >
+                Ă
+              </span>
+              <span className="transaction-copy">
+                <b className="flex items-center gap-1.5">
+                  Cà phê sáng
+                  {step === 2 && (
+                    <span className="rounded bg-vermilion px-1 py-0.2 text-[0.65em] font-bold text-paper uppercase tracking-wider animate-bounce">
+                      Mới
+                    </span>
+                  )}
+                  {isCategoryLit && (
+                    <span className="rounded bg-gold/40 text-ink px-1 py-0.2 text-[0.65em] font-bold uppercase tracking-wider">
+                      ✨ Ăn uống
+                    </span>
+                  )}
+                </b>
+                <small className={isCategoryLit ? "text-vermilion font-semibold" : ""}>
+                  Ăn uống · 09:15
+                </small>
+              </span>
+              <strong className="text-vermilion font-semibold">−45.000 ₫</strong>
+            </div>
+          )}
+
+          {baseline.map((item) => (
+            <div className="transaction" key={item.name}>
+              <span className={`transaction-icon ${item.tone}`}>{item.icon}</span>
+              <span className="transaction-copy">
+                <b>{item.name}</b>
+                <small>{item.meta}</small>
+              </span>
+              <strong className={item.tone === "green" ? "positive" : ""}>{item.value}</strong>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Add Button with Step 1 active state */}
+        <span
+          className={`quick-add transition-all duration-300 ${
+            step === 1 ? "scale-105 ring-2 ring-paper shadow-xl shadow-vermilion/70 bg-vermilion" : ""
+          }`}
+        >
+          <i /> {step === 1 ? "Đang ghi..." : "Ghi giao dịch"}
+        </span>
+
+        {/* Bottom Nav */}
+        <div className="mock-nav">
+          <span className="mock-nav-item is-active"><i />Tổng quan</span>
+          <span className="mock-nav-item"><i />Thống kê</span>
+          <span className="mock-nav-item"><i />Ngân sách</span>
+        </div>
+      </div>
+    </div>
+  );
 }
-
-const INITIAL_TRANSACTIONS: DemoTransaction[] = [
-  { id: "tx-1", icon: "Ă", name: "Bữa trưa", meta: "Ăn uống · 12:30", value: "−85.000 ₫", tone: "red" },
-  { id: "tx-2", icon: "X", name: "Xăng xe", meta: "Di chuyển · 08:15", value: "−50.000 ₫", tone: "gold" },
-  { id: "tx-3", icon: "L", name: "Thưởng dự án", meta: "Thu nhập · Hôm qua", value: "+2.500.000 ₫", tone: "green" },
-];
 
 export default function TransactionFlowShowcase() {
   const [step, setStep] = useState(0); // 0: Ready, 1: Form popup, 2: Insert into list, 3: Category highlight, 4: Summary update
@@ -24,7 +233,7 @@ export default function TransactionFlowShowcase() {
     if (!isPlaying) return;
     const timer = setTimeout(() => {
       setStep((prev) => (prev < 4 ? prev + 1 : 0));
-    }, 1800);
+    }, 2400);
     return () => clearTimeout(timer);
   }, [isPlaying, step]);
 
@@ -32,6 +241,30 @@ export default function TransactionFlowShowcase() {
     setIsPlaying(false);
     setStep((prev) => (prev < 4 ? prev + 1 : 0));
   };
+
+  // Build responsive, non-blocking floating status chip placed cleanly outside the phone
+  const floatingChips: FloatingChip[] = [
+    {
+      id: "tx-live-toast",
+      position: "top-left",
+      content: (
+        <div className="flex items-center gap-2 rounded-full border border-paper/20 bg-lacquer/95 px-3.5 py-1.5 text-[11px] text-paper shadow-xl backdrop-blur-md">
+          <span
+            className={`size-2 rounded-full ${
+              step >= 2 ? "bg-emerald-400" : step === 1 ? "bg-vermilion animate-ping" : "bg-amber-400 animate-pulse"
+            }`}
+          />
+          <span className="font-medium">
+            {step === 0 && "Sẵn sàng ghi nhanh"}
+            {step === 1 && "Đang nhập: Cà phê sáng (−45k)"}
+            {step === 2 && "Đã trượt vào danh sách (09:15)"}
+            {step === 3 && "Đã liên kết: Nhóm Ăn uống"}
+            {step === 4 && "Đã cập nhật: Số dư −45k · Chi 180k"}
+          </span>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <section className="transaction-flow-section relative overflow-hidden bg-ink py-20 text-paper md:py-32" aria-labelledby="tx-flow-title">
@@ -104,49 +337,11 @@ export default function TransactionFlowShowcase() {
               perspective="perspective-left"
               w="clamp(230px, 24vw, 300px)"
               ambientGlow="vermilion"
-              floatingChips={[
-                {
-                  id: "tx-live-toast",
-                  position: "top-left",
-                  content: (
-                    <div className="flex items-center gap-2 rounded-full border border-paper/20 bg-lacquer/90 px-3.5 py-1.5 text-[11px] text-paper shadow-xl backdrop-blur-md">
-                      <span className="size-2 rounded-full bg-emerald-400" />
-                      <span>{step >= 2 ? "Đã lưu 1 giao dịch" : "Sẵn sàng ghi nhanh"}</span>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-
-            {/* Emerging Floating Transaction Card (2.5D Layer) */}
-            {step >= 1 && (
-              <div
-                className={`absolute left-1/2 top-1/3 z-30 w-64 -translate-x-1/2 rounded-2xl border border-vermilion/50 bg-[#1f1915] p-4 text-paper shadow-2xl backdrop-blur-md transition-all duration-700 ${
-                  step === 1
-                    ? "scale-105 translate-y-0 opacity-100"
-                    : step >= 2
-                    ? "scale-95 translate-y-24 opacity-0 pointer-events-none"
-                    : "opacity-0"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest text-vermilion font-medium">Khoản chi mới</span>
-                  <span className="rounded-full bg-vermilion/20 px-2 py-0.5 text-[10px] text-vermilion">Vừa nhập</span>
-                </div>
-                <div className="mt-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex size-7 items-center justify-center rounded-full bg-vermilion text-xs font-semibold text-paper">
-                      Ă
-                    </span>
-                    <div>
-                      <strong className="block text-xs font-normal">Cà phê sáng</strong>
-                      <span className="text-[10px] text-paper/50">Ăn uống · 09:15</span>
-                    </div>
-                  </div>
-                  <strong className="font-display text-base text-vermilion">−45.000 ₫</strong>
-                </div>
-              </div>
-            )}
+              floatingChips={floatingChips}
+            >
+              {/* Dynamic Living Sổ Chi Screen reflecting steps 0 through 4 */}
+              <InteractivePhoneScreen step={step} />
+            </DeviceMockup>
           </div>
 
           {/* Right: Step-by-Step Interactive Flow Breakdown */}
@@ -164,22 +359,22 @@ export default function TransactionFlowShowcase() {
                 <span className="text-paper/40 text-xs" aria-hidden>↓</span>
                 <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 3 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
                   <span>Danh mục</span>
-                  <span className="text-gold">Ăn uống</span>
+                  <span className="text-gold">Ăn uống (Phát sáng)</span>
                 </div>
                 <span className="text-paper/40 text-xs" aria-hidden>↓</span>
                 <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 2 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
                   <span>Danh sách giao dịch</span>
-                  <span className="text-paper/60">09:15 sáng</span>
+                  <span className="text-paper/60">09:15 sáng (Trượt vào)</span>
                 </div>
                 <span className="text-paper/40 text-xs" aria-hidden>↓</span>
                 <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 4 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
                   <span>Tổng chi ngày</span>
-                  <span className="text-paper font-semibold">180.000 ₫</span>
+                  <span className="text-paper font-semibold">180.000 ₫ (Cập nhật)</span>
                 </div>
                 <span className="text-paper/40 text-xs" aria-hidden>↓</span>
                 <div className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${step === 0 || step === 4 ? "bg-vermilion/20 border border-vermilion/40 text-paper font-medium" : "bg-paper/5"}`}>
                   <span>Bức tranh tổng thể</span>
-                  <span className="text-emerald-400">24.680.000 ₫</span>
+                  <span className="text-emerald-400">{step === 4 ? "24.635.000 ₫" : "24.680.000 ₫"}</span>
                 </div>
               </div>
             </div>
@@ -187,10 +382,14 @@ export default function TransactionFlowShowcase() {
             <div className="mt-6 flex flex-col gap-6">
               {/* Step item 1 */}
               <div
-                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
+                onClick={() => {
+                  setIsPlaying(false);
+                  setStep(1);
+                }}
+                className={`cursor-pointer rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 1
-                    ? "border-vermilion bg-vermilion/10 text-paper"
-                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
+                    ? "border-vermilion bg-vermilion/10 text-paper shadow-md shadow-vermilion/20 ring-1 ring-vermilion/40"
+                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20 hover:bg-paper/10"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -204,10 +403,14 @@ export default function TransactionFlowShowcase() {
 
               {/* Step item 2 */}
               <div
-                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
+                onClick={() => {
+                  setIsPlaying(false);
+                  setStep(2);
+                }}
+                className={`cursor-pointer rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 2
-                    ? "border-vermilion bg-vermilion/10 text-paper"
-                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
+                    ? "border-vermilion bg-vermilion/10 text-paper shadow-md shadow-vermilion/20 ring-1 ring-vermilion/40"
+                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20 hover:bg-paper/10"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -221,10 +424,14 @@ export default function TransactionFlowShowcase() {
 
               {/* Step item 3 */}
               <div
-                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
+                onClick={() => {
+                  setIsPlaying(false);
+                  setStep(3);
+                }}
+                className={`cursor-pointer rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 3
-                    ? "border-vermilion bg-vermilion/10 text-paper"
-                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
+                    ? "border-vermilion bg-vermilion/10 text-paper shadow-md shadow-vermilion/20 ring-1 ring-vermilion/40"
+                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20 hover:bg-paper/10"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -238,10 +445,14 @@ export default function TransactionFlowShowcase() {
 
               {/* Step item 4 */}
               <div
-                className={`rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
+                onClick={() => {
+                  setIsPlaying(false);
+                  setStep(4);
+                }}
+                className={`cursor-pointer rounded-2xl border p-4 md:p-5 transition-all duration-300 ${
                   step === 4
-                    ? "border-vermilion bg-vermilion/10 text-paper"
-                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20"
+                    ? "border-vermilion bg-vermilion/10 text-paper shadow-md shadow-vermilion/20 ring-1 ring-vermilion/40"
+                    : "border-paper/10 bg-paper/5 text-paper/70 hover:border-paper/20 hover:bg-paper/10"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -254,12 +465,25 @@ export default function TransactionFlowShowcase() {
               </div>
             </div>
 
-            {/* Next step button */}
-            <div className="mt-8 flex justify-end">
+            {/* Next step button & Reset button */}
+            <div className="mt-8 flex items-center justify-between">
+              {step > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPlaying(false);
+                    setStep(0);
+                  }}
+                  className="cursor-pointer text-xs uppercase tracking-wider text-paper/60 transition-colors hover:text-paper"
+                >
+                  ← Khởi tạo lại
+                </button>
+              ) : <span />}
+
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="cursor-pointer rounded-full bg-vermilion px-6 py-2.5 text-xs uppercase tracking-[0.16em] font-medium text-paper transition-opacity hover:opacity-90"
+                className="cursor-pointer rounded-full bg-vermilion px-6 py-2.5 text-xs uppercase tracking-[0.16em] font-medium text-paper transition-opacity hover:opacity-90 shadow-md shadow-vermilion/30"
               >
                 {step === 4 ? "Bắt đầu lại chu kỳ" : "Xem bước tiếp theo →"}
               </button>
