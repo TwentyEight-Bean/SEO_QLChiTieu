@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Phone from "./Phone";
 import { APP, CATEGORIES, FEATURES } from "./config";
 import { Link } from "./router";
@@ -10,7 +10,7 @@ import BudgetShowcase from "./components/BudgetShowcase";
 import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
 import DataExpansionSequence from "./components/DataExpansionSequence";
 import StatisticsVisualStories from "./components/StatisticsVisualStories";
-import { openPrelaunchSheet } from "./lib";
+import { openPrelaunchSheet, track } from "./lib";
 import {
   type FaqItem,
   type ProductPageDef,
@@ -26,7 +26,8 @@ import {
   getCanonicalPath,
   getStructuredData,
   featureById,
-  ARTICLES
+  ARTICLES,
+  PRODUCT_CTA_LABEL
 } from "./pagesData";
 
 export {
@@ -374,6 +375,10 @@ function BlogIndex() {
 /* ---------- Article page ---------- */
 
 function ArticlePage({ article }: { article: ArticleDef }) {
+  useEffect(() => {
+    track("blog_article_view", { slug: article.slug, category: article.category });
+  }, [article.slug, article.category]);
+
   const related = article.related.map((path) => ARTICLES.find((item) => item.path === path)).filter(Boolean) as ArticleDef[];
 
   // Find contextual product links not already in related
@@ -433,6 +438,7 @@ function ArticlePage({ article }: { article: ArticleDef }) {
                     <Link
                       key={p.path}
                       href={p.path}
+                      onClick={() => track("blog_to_product_click", { destination: p.path, article: article.slug })}
                       className="min-h-11 inline-flex items-center rounded-full border border-ink/15 px-3.5 py-1.5 text-xs text-ink/80 hover:border-vermilion hover:text-vermilion"
                     >
                       {p.nav} →
@@ -454,7 +460,13 @@ function ArticlePage({ article }: { article: ArticleDef }) {
                 <p>Tính năng liên quan</p>
                 <nav aria-label="Tính năng liên quan">
                   {contextualProductLinks.map((p) => (
-                    <Link key={p.path} href={p.path}>{p.nav} <span aria-hidden>→</span></Link>
+                    <Link
+                      key={p.path}
+                      href={p.path}
+                      onClick={() => track("blog_to_product_click", { destination: p.path, article: article.slug })}
+                    >
+                      {p.nav} <span aria-hidden>→</span>
+                    </Link>
                   ))}
                 </nav>
               </div>
@@ -480,7 +492,12 @@ function ArticlePage({ article }: { article: ArticleDef }) {
             <aside className="cta-panel">
               <p>Áp dụng với {APP.name}</p>
               <h2>Biến bài học thành thói quen quản lý chi tiêu hằng ngày.</h2>
-              <Link href="/tinh-nang">Xem tính năng phù hợp <span aria-hidden>→</span></Link>
+              <Link
+                href="/tinh-nang"
+                onClick={() => track("blog_to_product_click", { destination: "/tinh-nang", article: article.slug })}
+              >
+                Xem tính năng phù hợp <span aria-hidden>→</span>
+              </Link>
             </aside>
           </article>
         </div>
@@ -518,6 +535,142 @@ function RelatedLinks({ title, items }: { title: string; items: RouteDef[] }) {
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
+}
+
+function UnsubscribePage({ page }: { page: ProductPageDef }) {
+  const [token, setToken] = useState("");
+  const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get("token") || "";
+      if (t) {
+        setToken(t);
+      }
+    }
+  }, []);
+
+  const handleUnsubscribe = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!token) {
+      setStatus("error");
+      setMessage("Vui lòng cung cấp mã xác thực hủy đăng ký hoặc sử dụng liên kết trong email bạn đã nhận.");
+      return;
+    }
+    setStatus("processing");
+    try {
+      const res = await fetch("/api/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setStatus("success");
+        setMessage(data.message || "Bạn đã hủy đăng ký nhận thông báo thành công.");
+      } else {
+        setStatus("error");
+        setMessage(data.message || "Mã xác thực không hợp lệ hoặc đã hết hạn.");
+      }
+    } catch {
+      setStatus("error");
+      setMessage("Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại sau.");
+    }
+  };
+
+  return (
+    <main className="min-h-svh bg-paper text-ink">
+      <header className="article-hero bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
+        <div className="mx-auto max-w-[1100px] text-center">
+          <nav aria-label="Đường dẫn" className="breadcrumb justify-center">
+            <Link href="/">Trang chủ</Link>
+            <span aria-hidden />
+            <span>{page.nav}</span>
+          </nav>
+          <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{page.eyebrow}</p>
+          <h1 className="mt-5 font-display text-[clamp(2.15rem,6.2vw,4.5rem)] font-light leading-[1.08]">
+            {page.h1}
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-paper/70">
+            {page.intro}
+          </p>
+        </div>
+      </header>
+
+      <div className="washi px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-xl rounded-2xl border border-ink/10 bg-paper/80 p-8 shadow-sm backdrop-blur-sm">
+          {status === "success" ? (
+            <div className="text-center py-6 animate-fade-in">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-vermilion/20 text-vermilion">
+                <svg className="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </div>
+              <h2 className="mt-5 font-display text-2xl font-light text-ink">Đã hủy đăng ký thành công</h2>
+              <p className="mt-3 text-sm leading-relaxed text-ink/70">{message}</p>
+              <div className="mt-8">
+                <Link
+                  href="/"
+                  className="inline-flex min-h-12 items-center rounded-full bg-ink px-7 py-3 text-xs uppercase tracking-[0.16em] font-medium text-paper transition-transform active:scale-95 hover:bg-ink/90"
+                >
+                  ← Về trang chủ Sổ Chi
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleUnsubscribe} className="space-y-6">
+              <div>
+                <h2 className="font-display text-xl font-light text-ink">Xác nhận ngừng nhận thông báo</h2>
+                <p className="mt-2 text-sm leading-relaxed text-ink/70">
+                  Khi xác nhận, email của bạn sẽ được đánh dấu ngừng nhận thông báo ra mắt ứng dụng Sổ Chi.
+                </p>
+              </div>
+
+              {!token && (
+                <div>
+                  <label htmlFor="token-input" className="block text-xs uppercase tracking-wider text-ink/60 mb-2 font-medium">
+                    Mã xác thực hủy đăng ký
+                  </label>
+                  <input
+                    id="token-input"
+                    type="text"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder="Dán mã xác thực từ email..."
+                    className="w-full rounded-xl border border-ink/20 bg-paper px-4 py-3 text-sm text-ink outline-none transition focus:border-vermilion focus:ring-1 focus:ring-vermilion"
+                  />
+                </div>
+              )}
+
+              {status === "error" && (
+                <div className="rounded-lg bg-vermilion/10 p-3.5 text-xs text-vermilion font-medium">
+                  {message}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={status === "processing"}
+                  className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-vermilion px-6 py-3 text-xs uppercase tracking-[0.16em] font-medium text-paper transition active:scale-95 disabled:opacity-50"
+                >
+                  {status === "processing" ? "Đang xử lý..." : "Xác nhận hủy đăng ký"}
+                </button>
+                <Link
+                  href="/"
+                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/20 px-6 py-3 text-xs uppercase tracking-[0.16em] text-ink/70 hover:border-ink/50"
+                >
+                  Giữ lại đăng ký
+                </Link>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </main>
+  );
 }
 
 export function NotFoundPage({ path }: { path: string }) {
@@ -563,6 +716,7 @@ export function NotFoundPage({ path }: { path: string }) {
 export default function ContentPage({ page }: { page: RouteDef }) {
   if (page.kind === "blog") return <BlogIndex />;
   if (page.kind === "article") return <ArticlePage article={page} />;
+  if (page.path === "/huy-dang-ky") return <UnsubscribePage page={page} />;
   return <ProductPage page={page} />;
 }
 

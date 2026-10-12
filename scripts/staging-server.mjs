@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import zlib from 'zlib';
 
 import waitlistHandler from '../api/waitlist.js';
+import unsubscribeHandler from '../api/unsubscribe.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +14,9 @@ const distDir = path.resolve(rootDir, 'dist');
 
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
-const IS_STAGING = process.env.STAGING === 'true' || true;
+
+// Environment Flag: Staging sends noindex/nofollow; Production MUST NOT contain X-Robots-Tag noindex
+const IS_STAGING = process.env.APP_ENV !== 'production' && process.env.STAGING !== 'false' && process.env.NODE_ENV !== 'production';
 
 // MIME types
 const MIME_TYPES = {
@@ -35,12 +38,15 @@ const server = http.createServer((req, res) => {
   const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = decodeURIComponent(urlObj.pathname);
 
-  // Security Headers
+  // Production Security Headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https:;");
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https: https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;"
+  );
 
   // Staging Noindex Header: If staging environment, prevent search engines from indexing
   if (IS_STAGING) {
@@ -69,6 +75,32 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify(data));
       };
       waitlistHandler(req, res);
+    });
+    return;
+  }
+
+  // Handle Unsubscribe API
+  if (pathname === '/api/unsubscribe') {
+    let bodyData = '';
+    req.on('data', chunk => {
+      bodyData += chunk;
+      if (bodyData.length > 1e6) req.destroy();
+    });
+    req.on('end', () => {
+      try {
+        req.body = bodyData ? JSON.parse(bodyData) : {};
+      } catch {
+        req.body = {};
+      }
+      res.status = (code) => {
+        res.statusCode = code;
+        return res;
+      };
+      res.json = (data) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(data));
+      };
+      unsubscribeHandler(req, res);
     });
     return;
   }
@@ -131,8 +163,8 @@ function serveFile(file, statusCode, res, req) {
 }
 
 server.listen(PORT, HOST, () => {
-  console.log(`[STAGING SERVER] Running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
-  console.log(`[STAGING SERVER] Environment: ${IS_STAGING ? 'STAGING (X-Robots-Tag: noindex, nofollow)' : 'PRODUCTION'}`);
-  console.log(`[STAGING SERVER] Real 404 Handling: ACTIVE`);
-  console.log(`[STAGING SERVER] Waitlist API: http://localhost:${PORT}/api/waitlist`);
+  console.log(`[PRODUCTION/STAGING SERVER] Running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+  console.log(`[PRODUCTION/STAGING SERVER] Mode: ${IS_STAGING ? 'STAGING (X-Robots-Tag: noindex, nofollow)' : 'PRODUCTION (Indexable, No X-Robots-Tag)'}`);
+  console.log(`[PRODUCTION/STAGING SERVER] Real 404 Handling: ACTIVE`);
+  console.log(`[PRODUCTION/STAGING SERVER] Endpoints: /api/waitlist, /api/unsubscribe`);
 });

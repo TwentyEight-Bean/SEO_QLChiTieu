@@ -238,10 +238,11 @@ export default function MobilePrelaunchSheet({
               <div className="text-center text-[11px] text-paper/50 pt-1 space-y-1">
                 <p>Cam kết bảo mật: Chúng tôi chỉ gửi một email khi ứng dụng ra mắt.</p>
                 <p>
-                  Hủy đăng ký hoặc liên hệ:{" "}
-                  <a href="mailto:lienhe@sochi.app" className="underline hover:text-paper">
-                    lienhe@sochi.app
+                  Bạn có thể chủ động{" "}
+                  <a href="/huy-dang-ky" className="underline hover:text-paper">
+                    hủy nhận tin bất kỳ lúc nào
                   </a>
+                  .
                 </p>
               </div>
             </form>

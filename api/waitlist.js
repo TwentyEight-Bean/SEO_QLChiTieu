@@ -1,8 +1,6 @@
-// Serverless API handler for /api/waitlist (Vercel, Netlify, Node server)
-import fs from 'fs';
-import path from 'path';
+import { normalizeEmail, waitlistProvider } from './waitlist-provider.js';
 
-// Rate limiting map (in-memory per instance)
+// Rate limiting map (in-memory sliding window per server instance)
 const rateLimitMap = new Map();
 
 export default async function handler(req, res) {
@@ -17,23 +15,33 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'method_not_allowed', message: 'Method Not Allowed' });
+    return res.status(405).json({
+      ok: false,
+      error: 'method_not_allowed',
+      message: 'Phương thức không được hỗ trợ.',
+    });
   }
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const email = (body.email || '').trim().toLowerCase();
+    const rawEmail = (body.email || '');
     const source = (body.source || 'web').slice(0, 50);
+    const consentVersion = (body.consent_version || 'v1_prelaunch').slice(0, 20);
     const honeypot = body.hp || body.hp_code || '';
 
     // 1. Anti-spam Honeypot Check
     if (honeypot) {
-      // Spam bot triggered honeypot; respond with 200 to trick bot without saving
-      return res.status(200).json({ ok: true, message: 'Đã ghi nhận thông tin.' });
+      // Bot trapped; respond with 200 without saving data
+      return res.status(200).json({
+        ok: true,
+        message: 'Đã ghi nhận thông tin đăng ký.',
+      });
     }
 
-    // 2. Server-side Email Validation (RFC 5322 regex)
+    // 2. Server-side Email Normalization & RFC 5322 Validation
+    const email = normalizeEmail(rawEmail);
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+    
     if (!email || !emailRegex.test(email) || email.length > 254) {
       return res.status(400).json({
         ok: false,
@@ -53,7 +61,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 3. Rate Limiting (max 5 requests per IP per 10 minutes)
+    // 3. Rate Limiting (max 5 submissions per IP per 10 minutes)
     const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
     const now = Date.now();
     const windowMs = 10 * 60 * 1000;
@@ -75,24 +83,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // 4. Persistence & Duplicate Check
-    const dataDir = path.resolve(process.cwd(), 'data');
-    const waitlistFile = path.resolve(dataDir, 'waitlist.json');
-
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    let subscribers = [];
-    if (fs.existsSync(waitlistFile)) {
-      try {
-        subscribers = JSON.parse(fs.readFileSync(waitlistFile, 'utf8'));
-      } catch {
-        subscribers = [];
-      }
-    }
-
-    const existing = subscribers.find(s => s.email === email);
+    // 4. Duplicate Check
+    const existing = await waitlistProvider.findSubscriber(email);
     if (existing) {
       return res.status(200).json({
         ok: true,
@@ -101,33 +93,26 @@ export default async function handler(req, res) {
       });
     }
 
-    const newSubscriber = {
+    // 5. Persistent Save (Minimal Data Model: id, email, created_at, status, source, consent_version)
+    const newSubscriber = await waitlistProvider.saveSubscriber({
       email,
       source,
-      createdAt: new Date().toISOString(),
-      ipHash: Buffer.from(ip).toString('base64').slice(0, 8),
-    };
+      consentVersion,
+    });
 
-    subscribers.push(newSubscriber);
-    fs.writeFileSync(waitlistFile, JSON.stringify(subscribers, null, 2), 'utf8');
+    // 6. Transactional Confirmation Email (if Resend is enabled)
+    waitlistProvider.sendConfirmationEmail(email).catch(err => {
+      console.error('[Waitlist Email Trigger Error]', err.message);
+    });
 
-    // 5. External Webhook Forwarding (if configured)
-    const webhookUrl = process.env.WAITLIST_WEBHOOK_URL;
-    if (webhookUrl) {
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSubscriber),
-      }).catch(err => console.error('[Waitlist Webhook Error]', err));
-    }
-
-    return res.status(200).json({
+    return res.status(201).json({
       ok: true,
       duplicate: false,
+      subscriber_id: newSubscriber.id,
       message: 'Đăng ký thành công! Sổ Chi sẽ gửi một email ngắn thông báo khi ứng dụng chính thức ra mắt.',
     });
   } catch (err) {
-    console.error('[Waitlist API Error]', err);
+    console.error('[Waitlist API Error]', err.message);
     return res.status(500).json({
       ok: false,
       error: 'server_error',

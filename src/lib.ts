@@ -14,17 +14,49 @@ export type EventName =
   | "final_cta_click"
   | "prelaunch_signup";
 
+const GA_MEASUREMENT_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID || "").trim();
+
+let gaInitialized = false;
+export function initGA() {
+  if (typeof window === "undefined" || !GA_MEASUREMENT_ID || gaInitialized) return;
+  gaInitialized = true;
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`;
+  document.head.appendChild(script);
+
+  const w = window as unknown as { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void };
+  w.dataLayer ||= [];
+  function gtag(...args: unknown[]) {
+    w.dataLayer?.push(args);
+  }
+  w.gtag = gtag;
+  gtag("js", new Date());
+  gtag("config", GA_MEASUREMENT_ID, {
+    send_page_view: true,
+    anonymize_ip: true,
+  });
+}
+
 export function track(name: EventName, params: Record<string, string | number | boolean> = {}) {
-  // Strict PII sanitization: never push email, names, or identifiable values to analytics
+  // Strict PII sanitization: NEVER push email, names, phone, tokens, or identifiable values to GA4
   const sanitizedParams: Record<string, string | number | boolean> = {};
   for (const [k, v] of Object.entries(params)) {
-    if (/email|name|phone|address|ip|token/i.test(k)) continue;
+    if (/email|name|phone|address|ip|token|subscriber|id$|user_id|body|content|form|hp/i.test(k)) continue;
     if (typeof v === "string" && (v.includes("@") || v.length > 100)) continue;
     sanitizedParams[k] = v;
   }
 
-  const w = window as unknown as { dataLayer?: unknown[] };
+  const w = window as unknown as { dataLayer?: unknown[]; gtag?: (type: string, name: string, params: unknown) => void };
   (w.dataLayer ||= []).push({ event: name, ...sanitizedParams });
+
+  // Direct GA4 dispatch if gtag is loaded
+  if (typeof w.gtag === "function") {
+    w.gtag("event", name, sanitizedParams);
+  }
+
+  // Custom event for DOM/test observability
   window.dispatchEvent(new CustomEvent("analytics", { detail: { name, ...sanitizedParams } }));
 }
 

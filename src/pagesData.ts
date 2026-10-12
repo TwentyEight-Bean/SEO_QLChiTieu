@@ -3,7 +3,7 @@ import type { PhoneScreen } from "./Phone";
 
 type FeatureId = (typeof FEATURES)[number]["id"];
 const HAS_STORE_LINKS = Boolean(STORES.appStore || STORES.googlePlay);
-const PRODUCT_CTA_LABEL = HAS_STORE_LINKS ? "Xem phần tải ứng dụng" : "Nhận thông báo khi ra mắt";
+export const PRODUCT_CTA_LABEL = HAS_STORE_LINKS ? "Xem phần tải ứng dụng" : "Nhận thông báo khi ra mắt";
 
 /* ---------- Data Types ---------- */
 
@@ -352,6 +352,33 @@ export const PRODUCT_PAGES: ProductPageDef[] = [
       { q: "Điều khoản này có thể thay đổi không?", a: "Chúng tôi có thể cập nhật điều khoản khi ứng dụng có tính năng mới. Mọi thay đổi sẽ được công bố công khai trên trang này." },
     ],
     related: ["/chinh-sach-bao-mat", "/cau-hoi-thuong-gap", "/gioi-thieu"],
+  },
+  {
+    kind: "product",
+    path: "/huy-dang-ky",
+    nav: "Hủy đăng ký nhận tin",
+    title: `Hủy đăng ký nhận thông báo | ${APP.name}`,
+    description: `Hủy đăng ký nhận email thông báo ra mắt từ ứng dụng Sổ Chi một cách nhanh chóng và bảo mật.`,
+    eyebrow: "Quyền riêng tư & Quản lý thông tin",
+    h1: "Hủy đăng ký nhận thông báo",
+    intro: "Chúng tôi tôn trọng quyền riêng tư của bạn. Bạn có thể rời khỏi danh sách nhận thông báo ra mắt của Sổ Chi bất cứ lúc nào.",
+    screen: "thu-chi",
+    metrics: ["Bảo mật", "Minh bạch", "1 Cú nhấp chuột"],
+    sections: [
+      {
+        h: "Chính sách gửi thư của Sổ Chi",
+        p: [
+          "Sổ Chi chỉ gửi thư thông báo khi ứng dụng chính thức phát hành. Chúng tôi cam kết không gửi thư rác.",
+          "Nếu bạn không còn nhu cầu nhận thông báo, hệ thống sẽ cập nhật trạng thái hủy đăng ký của bạn ngay lập tức.",
+        ],
+      },
+    ],
+    benefits: [
+      "Hủy nhận thư tức thì không cần thủ tục phức tạp.",
+      "Không bao giờ gửi thư làm phiền ngoài ý muốn.",
+      "Dữ liệu được cập nhật an toàn theo tiêu chuẩn bảo mật.",
+    ],
+    related: ["/chinh-sach-bao-mat", "/dieu-khoan-su-dung", "/cau-hoi-thuong-gap"],
   },
 ];
 
