@@ -1,7 +1,19 @@
 import { useEffect, useState, type AnchorHTMLAttributes } from "react";
 
-export function usePath() {
-  const [path, setPath] = useState(() => window.location.pathname.replace(/\/$/, "") || "/");
+let ssrPath: string | null = null;
+export function setSSRPath(path: string | null) {
+  ssrPath = path;
+}
+
+export function usePath(initialPath?: string) {
+  const [path, setPath] = useState(() => {
+    if (initialPath) return initialPath.replace(/\/$/, "") || "/";
+    if (ssrPath) return ssrPath.replace(/\/$/, "") || "/";
+    if (typeof window !== "undefined") {
+      return window.location.pathname.replace(/\/$/, "") || "/";
+    }
+    return "/";
+  });
   useEffect(() => {
     const on = () => setPath(window.location.pathname.replace(/\/$/, "") || "/");
     window.addEventListener("popstate", on);

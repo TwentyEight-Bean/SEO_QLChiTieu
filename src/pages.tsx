@@ -280,31 +280,31 @@ export const PRODUCT_PAGES: ProductPageDef[] = [
     h1: "Chính sách bảo mật thông tin",
     intro: "Dữ liệu thu chi là thông tin nhạy cảm. Sổ Chi coi quyền riêng tư và sự an toàn dữ liệu của bạn là ưu tiên hàng đầu ngay từ giai đoạn chuẩn bị phát hành.",
     screen: "thu-chi",
-    metrics: ["Riêng tư", "Minh bạch", "Mã hóa"],
+    metrics: ["Riêng tư", "Minh bạch", "Chủ động"],
     sections: [
       {
         h: "Thu thập thông tin trong giai đoạn tiền phát hành",
         p: [
           "Website Sổ Chi hiện chỉ thu thập địa chỉ email khi bạn chủ động đăng ký nhận thông báo phát hành. Chúng tôi không thu thập thông tin tài khoản ngân hàng, mật khẩu hay danh bạ của bạn qua website.",
-          "Email của bạn chỉ được dùng cho mục đích duy nhất: gửi thông báo khi ứng dụng chính thức sẵn sàng trên App Store và Google Play. Không spam, không bán dữ liệu cho bên thứ ba.",
+          "Email của bạn chỉ được dùng cho mục đích thông báo tiến độ và phát hành ứng dụng. Không gửi thư rác, không chia sẻ hay kinh doanh dữ liệu cho bên thứ ba.",
         ],
       },
       {
-        h: "Nguyên tắc bảo vệ dữ liệu khi ứng dụng phát hành",
+        h: "Định hướng bảo vệ quyền riêng tư người dùng",
         p: [
-          "Sổ Chi được thiết kế theo triết lý ưu tiên lưu trữ an toàn trên thiết bị của người dùng (local-first). Khi ứng dụng ra mắt, các khoản thu chi do bạn ghi chép được quản lý an toàn và không bị công khai.",
-          "Mọi kết nối đồng bộ nếu có trong tương lai đều được bảo vệ bằng các giao thức mã hóa tiêu chuẩn ngành.",
+          "Mục tiêu thiết kế của Sổ Chi là tôn trọng tối đa quyền kiểm soát dữ liệu tài chính cá nhân của người dùng, không công khai và không bán dữ liệu dòng tiền.",
+          "Các cơ chế kỹ thuật cụ thể về lưu trữ và bảo mật dữ liệu sẽ được công bố chi tiết cùng tài liệu kỹ thuật khi ứng dụng phát hành chính thức trên các kho ứng dụng.",
         ],
         list: [
-          "Không yêu cầu liên kết trực tiếp tài khoản ngân hàng khi không cần thiết.",
-          "Dữ liệu thu chi thuộc toàn quyền sở hữu của người dùng.",
-          "Người dùng có thể xóa toàn bộ dữ liệu hoặc yêu cầu hủy đăng ký nhận email bất kỳ lúc nào.",
+          "Không yêu cầu liên kết trực tiếp tài khoản ngân hàng trên website.",
+          "Tôn trọng quyền sở hữu dữ liệu tài chính của người dùng.",
+          "Người dùng có thể yêu cầu hủy thông tin email đã đăng ký bất kỳ lúc nào.",
         ],
       },
       {
-        h: "Quyền của người dùng và thông tin liên hệ",
+        h: "Quyền của người dùng và tiếp nhận phản hồi",
         p: [
-          "Bạn có quyền yêu cầu tra cứu, điều chỉnh hoặc hủy thông tin email đã đăng ký bất kỳ lúc nào bằng cách phản hồi lại email thông báo của chúng tôi hoặc liên hệ ban biên tập.",
+          "Bạn có quyền yêu cầu tra cứu, điều chỉnh hoặc hủy thông tin email đã đăng ký bất kỳ lúc nào bằng cách phản hồi trực tiếp thư thông báo nhận được từ chúng tôi.",
         ],
       },
     ],
@@ -315,7 +315,7 @@ export const PRODUCT_PAGES: ProductPageDef[] = [
     ],
     faq: [
       { q: "Sổ Chi có đọc tin nhắn biến động số dư ngân hàng không?", a: "Sổ Chi là ứng dụng ghi chép thu chi thủ công và chủ động. Website và ứng dụng không tự ý truy cập trái phép tin nhắn SMS ngân hàng của người dùng." },
-      { q: "Làm thế nào để hủy nhận email thông báo ra mắt?", a: "Mỗi email gửi từ Sổ Chi đều có liên kết hủy nhận bản tin ở cuối thư, hoặc bạn có thể gửi yêu cầu hỗ trợ đến ban biên tập." },
+      { q: "Làm thế nào để hủy nhận email thông báo ra mắt?", a: "Khi nhận email thông báo từ Sổ Chi, bạn có thể nhấn liên kết hủy nhận bản tin ở chân trang hoặc phản hồi trực tiếp để được xử lý thủ công." },
     ],
     related: ["/dieu-khoan-su-dung", "/cau-hoi-thuong-gap", "/gioi-thieu"],
   },
