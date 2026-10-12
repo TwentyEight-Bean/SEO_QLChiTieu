@@ -7,7 +7,7 @@ import { ALL_PAGES, PRODUCT_PAGES, getCanonicalPath, getPageMeta, getRoute, getS
 
 const LazyContentPage = lazy(() => import("./pages"));
 const LazyNotFoundPage = lazy(() => import("./pages").then((m) => ({ default: m.NotFoundPage })));
-import { openPrelaunchSheet, storeUrl, track, useCountUp, useInView, useScrollProgress } from "./lib";
+import { openPrelaunchSheet, storeUrl, submitWaitlist, track, useCountUp, useInView, useScrollProgress } from "./lib";
 import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
 import MobileStickyCta from "./components/MobileStickyCta";
 
@@ -29,7 +29,29 @@ function Eyebrow({ n, children }: { n: string; children: React.ReactNode }) {
 }
 
 function PrelaunchSignup({ source, compact = false }: { source: string; compact?: boolean }) {
+  const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!email) return;
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    const res = await submitWaitlist(email, source, honeypot);
+    setIsSubmitting(false);
+
+    if (res.ok) {
+      setSubmitted(true);
+      setStatusMessage(res.message);
+    } else {
+      setErrorMessage(res.message);
+    }
+  };
 
   return (
     <div className="w-full max-w-lg">
@@ -41,7 +63,7 @@ function PrelaunchSignup({ source, compact = false }: { source: string; compact?
         <button
           type="button"
           onClick={() => {
-            track("final_cta_click", { source: `${source}_mobile` });
+            track("notify_cta_click", { source: `${source}_mobile` });
             openPrelaunchSheet(source);
           }}
           className="group relative flex min-h-12 w-full cursor-pointer items-center justify-between rounded-full bg-vermilion px-6 py-3.5 text-sm font-medium text-paper shadow-lg shadow-vermilion/25 transition-transform duration-200 active:scale-[0.98]"
@@ -59,12 +81,18 @@ function PrelaunchSignup({ source, compact = false }: { source: string; compact?
       {/* Desktop Inline Form (>= md) */}
       <form
         className={`hidden md:block prelaunch-form ${compact ? "is-compact" : ""}`}
-        onSubmit={(event) => {
-          event.preventDefault();
-          setSubmitted(true);
-          track("prelaunch_signup", { source });
-        }}
+        onSubmit={handleSubmit}
       >
+        <div className="hidden" aria-hidden="true">
+          <input
+            type="text"
+            name="hp_code"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+          />
+        </div>
         <div>
           <label htmlFor={`prelaunch-email-${source}`}>Nhận thông báo khi Sổ Chi ra mắt</label>
           <p id={`prelaunch-note-${source}`}>
@@ -81,12 +109,21 @@ function PrelaunchSignup({ source, compact = false }: { source: string; compact?
             placeholder="Email của bạn"
             aria-describedby={`prelaunch-note-${source}`}
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          <button type="submit">{submitted ? "Đã ghi nhận" : "Nhận thông báo"}</button>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Đang gửi..." : submitted ? "Đã ghi nhận" : "Nhận thông báo"}
+          </button>
         </div>
+        {errorMessage && (
+          <p className="mt-2 text-xs text-vermilion" role="alert">
+            {errorMessage}
+          </p>
+        )}
         {submitted && (
           <p className="prelaunch-form-status" role="status">
-            Cảm ơn bạn. Sổ Chi sẽ báo khi bản phát hành chính thức sẵn sàng.
+            {statusMessage || "Cảm ơn bạn. Sổ Chi sẽ báo khi bản phát hành chính thức sẵn sàng."}
           </p>
         )}
       </form>

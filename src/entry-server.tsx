@@ -9,8 +9,10 @@ import ContentPage, {
   ROUTE_PATHS,
 } from "./pages";
 import { APP } from "./config";
+import { setSSRPath } from "./router";
 
 export function render(path: string, origin: string) {
+  setSSRPath(path);
   const page = getRoute(path);
   const isNotFound = path === "/404" || (path !== "/" && !page);
   const meta = isNotFound

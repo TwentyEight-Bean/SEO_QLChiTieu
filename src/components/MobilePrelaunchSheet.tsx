@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { track } from "../lib";
+import { track, submitWaitlist } from "../lib";
 
 interface MobilePrelaunchSheetProps {
   isOpen: boolean;
@@ -13,8 +13,11 @@ export default function MobilePrelaunchSheet({
   source = "mobile_sheet",
 }: MobilePrelaunchSheetProps) {
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -71,24 +74,31 @@ export default function MobilePrelaunchSheet({
     };
   }, [isOpen, onClose]);
 
-  // Handle Form Submission
-  const handleSubmit = (e: FormEvent) => {
+  // Handle Form Submission with Real Backend
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes("@")) return;
 
     setIsSubmitting(true);
-    track("prelaunch_signup", { source, email });
+    setErrorMessage("");
 
-    // Simulate clean transition (isolated submit handler)
-    setTimeout(() => {
-      setIsSubmitting(false);
+    const res = await submitWaitlist(email, source, honeypot);
+    setIsSubmitting(false);
+
+    if (res.ok) {
+      setStatusMessage(res.message);
       setSubmitted(true);
-    }, 350);
+    } else {
+      setErrorMessage(res.message);
+    }
   };
 
   const handleReset = () => {
     setEmail("");
+    setHoneypot("");
     setSubmitted(false);
+    setErrorMessage("");
+    setStatusMessage("");
     onClose();
   };
 
@@ -167,6 +177,18 @@ export default function MobilePrelaunchSheet({
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              {/* Anti-spam Honeypot field (hidden from real users) */}
+              <div className="hidden" aria-hidden="true">
+                <input
+                  type="text"
+                  name="hp_code"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
               <div>
                 <label
                   htmlFor="sheet-email-input"
@@ -191,13 +213,19 @@ export default function MobilePrelaunchSheet({
                 </div>
               </div>
 
+              {errorMessage && (
+                <p className="rounded-xl bg-vermilion/15 border border-vermilion/30 px-3 py-2 text-xs text-paper/90" role="alert">
+                  {errorMessage}
+                </p>
+              )}
+
               {/* Primary action button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative flex min-h-12 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-vermilion px-6 text-sm font-medium text-paper shadow-lg shadow-vermilion/30 transition-transform active:scale-[0.98]"
+                className="group relative flex min-h-12 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-vermilion px-6 text-sm font-medium text-paper shadow-lg shadow-vermilion/30 transition-transform active:scale-[0.98] disabled:opacity-60"
               >
-                <span>{isSubmitting ? "Đang xử lý..." : "Nhận thông báo khi ra mắt"}</span>
+                <span>{isSubmitting ? "Đang gửi..." : "Nhận thông báo khi ra mắt"}</span>
                 <span
                   className="text-base transition-transform duration-200 group-hover:translate-x-1 group-active:translate-x-1"
                   aria-hidden
@@ -206,10 +234,16 @@ export default function MobilePrelaunchSheet({
                 </span>
               </button>
 
-              {/* Privacy microcopy */}
-              <p className="text-center text-xs text-paper/50 pt-1">
-                Không spam. Bạn có thể hủy bất cứ lúc nào.
-              </p>
+              {/* Privacy & Contact disclosure */}
+              <div className="text-center text-[11px] text-paper/50 pt-1 space-y-1">
+                <p>Cam kết bảo mật: Chúng tôi chỉ gửi một email khi ứng dụng ra mắt.</p>
+                <p>
+                  Hủy đăng ký hoặc liên hệ:{" "}
+                  <a href="mailto:lienhe@sochi.app" className="underline hover:text-paper">
+                    lienhe@sochi.app
+                  </a>
+                </p>
+              </div>
             </form>
           </div>
         ) : (
@@ -220,10 +254,10 @@ export default function MobilePrelaunchSheet({
               </svg>
             </div>
             <h3 className="mt-4 font-display text-2xl font-light text-paper">
-              ✓ Đã đăng ký
+              ✓ Đã ghi nhận
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-paper/70">
-              Chúng tôi sẽ báo cho bạn khi Sổ Chi sẵn sàng.
+              {statusMessage || "Chúng tôi sẽ gửi thông báo đến bạn khi Sổ Chi chính thức ra mắt."}
             </p>
 
             <button

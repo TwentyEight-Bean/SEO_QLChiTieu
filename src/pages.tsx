@@ -24,7 +24,9 @@ import {
   getRoute,
   getPageMeta,
   getCanonicalPath,
-  getStructuredData
+  getStructuredData,
+  featureById,
+  ARTICLES
 } from "./pagesData";
 
 export {

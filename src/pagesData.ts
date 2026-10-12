@@ -54,7 +54,7 @@ export type BlogIndexDef = {
 
 export type RouteDef = ProductPageDef | ArticleDef | BlogIndexDef;
 
-const featureById = Object.fromEntries(FEATURES.map((feature) => [feature.id, feature])) as Record<FeatureId, (typeof FEATURES)[number]>;
+export const featureById = Object.fromEntries(FEATURES.map((feature) => [feature.id, feature])) as Record<FeatureId, (typeof FEATURES)[number]>;
 
 /* ---------- Product Pages ---------- */
 
