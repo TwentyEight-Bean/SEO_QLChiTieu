@@ -56,38 +56,42 @@ export default function TransactionFlowShowcase() {
         </div>
 
         {/* Interactive Controls Bar */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          {[
-            { s: 0, label: "01. Khởi tạo" },
-            { s: 1, label: "02. Nhập khoản chi" },
-            { s: 2, label: "03. Trượt vào danh sách" },
-            { s: 3, label: "04. Chiếu sáng nhóm" },
-            { s: 4, label: "05. Cập nhật dòng tiền" },
-          ].map((item) => (
-            <button
-              key={item.s}
-              type="button"
-              onClick={() => {
-                setIsPlaying(false);
-                setStep(item.s);
-              }}
-              className={`cursor-pointer rounded-full px-4 py-2 text-xs uppercase tracking-[0.14em] transition-all ${
-                step === item.s
-                  ? "bg-vermilion text-paper shadow-md shadow-vermilion/40"
-                  : "border border-paper/15 text-paper/60 hover:border-paper/30 hover:text-paper"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+        <div className="mx-auto mt-10 max-w-5xl">
+          <div className="flex flex-wrap items-center justify-center gap-2 md:flex-nowrap md:gap-2.5">
+            {[
+              { s: 0, label: "01. Khởi tạo" },
+              { s: 1, label: "02. Nhập khoản chi" },
+              { s: 2, label: "03. Trượt danh sách" },
+              { s: 3, label: "04. Chiếu sáng nhóm" },
+              { s: 4, label: "05. Cập nhật tiền" },
+            ].map((item) => (
+              <button
+                key={item.s}
+                type="button"
+                onClick={() => {
+                  setIsPlaying(false);
+                  setStep(item.s);
+                }}
+                className={`cursor-pointer whitespace-nowrap rounded-full border px-3.5 py-2 text-xs uppercase tracking-[0.12em] transition-colors ${
+                  step === item.s
+                    ? "border-vermilion bg-vermilion text-paper font-medium shadow-md shadow-vermilion/30"
+                    : "border-paper/15 text-paper/60 hover:border-paper/30 hover:text-paper"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
 
-          <button
-            type="button"
-            onClick={() => setIsPlaying((prev) => !prev)}
-            className="cursor-pointer rounded-full border border-gold/40 bg-gold/10 px-5 py-2 text-xs uppercase tracking-[0.14em] text-gold transition-colors hover:bg-gold hover:text-ink font-medium"
-          >
-            {isPlaying ? "Tạm dừng" : "Tự động chạy ▶"}
-          </button>
+            {/* Play/Pause Button with FIXED WIDTH so it NEVER causes line jumps */}
+            <button
+              type="button"
+              onClick={() => setIsPlaying((prev) => !prev)}
+              className="inline-flex w-36 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-2 text-xs uppercase tracking-[0.12em] text-gold transition-colors hover:bg-gold hover:text-ink font-medium"
+            >
+              <span className={`size-1.5 rounded-full ${isPlaying ? "bg-emerald-400" : "bg-gold animate-pulse"}`} />
+              <span>{isPlaying ? "Tạm dừng" : "Tự động ▶"}</span>
+            </button>
+          </div>
         </div>
 
         {/* 2.5D Interactive Stage */}

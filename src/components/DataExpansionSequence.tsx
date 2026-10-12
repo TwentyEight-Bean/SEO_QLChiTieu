@@ -135,9 +135,9 @@ export default function DataExpansionSequence() {
         </div>
 
         {/* Milestone Steps Bar & Seekable Scrubber Track */}
-        <div className="mx-auto mt-12 max-w-2xl">
-          {/* Milestone Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3" role="tablist" aria-label="Các giai đoạn tách lớp dữ liệu">
+        <div className="mx-auto mt-12 max-w-4xl">
+          {/* Milestone Tabs - 4-Column Structured Grid so tabs NEVER wrap or jump */}
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 md:gap-3" role="tablist" aria-label="Các giai đoạn tách lớp dữ liệu">
             {STAGES.map((s) => (
               <button
                 key={s.index}
@@ -145,14 +145,16 @@ export default function DataExpansionSequence() {
                 role="tab"
                 aria-selected={currentStage === s.index}
                 onClick={() => setCurrentStage(s.index)}
-                className={`group flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.16em] transition-all duration-300 md:px-5 md:py-2.5 ${
+                className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border px-3 py-2.5 text-center transition-colors duration-200 ${
                   currentStage === s.index
-                    ? "border-vermilion bg-vermilion text-paper font-medium shadow-lg shadow-vermilion/40 scale-105"
-                    : "border-paper/15 bg-paper/5 text-paper/60 hover:border-paper/30 hover:bg-paper/10 hover:text-paper"
+                    ? "border-vermilion bg-vermilion text-paper font-medium shadow-md shadow-vermilion/40"
+                    : "border-paper/15 bg-paper/5 text-paper/65 hover:border-paper/30 hover:bg-paper/10 hover:text-paper"
                 }`}
               >
-                <span>{s.label}</span>
-                <span className="hidden text-[10px] opacity-70 sm:inline">· {s.sub}</span>
+                <span className="text-[11px] font-medium uppercase tracking-[0.14em]">{s.label}</span>
+                <span className={`mt-0.5 text-[10px] tracking-normal ${currentStage === s.index ? "text-paper/85" : "text-paper/45"}`}>
+                  {s.sub}
+                </span>
               </button>
             ))}
           </div>
@@ -185,7 +187,7 @@ export default function DataExpansionSequence() {
         </div>
 
         {/* 2.5D Expanding Holographic Stage & Narrative Split */}
-        <div className="mt-16 grid items-center gap-12 lg:grid-cols-[1fr_420px]">
+        <div className="mt-16 grid items-start gap-12 lg:grid-cols-[1fr_420px]">
           {/* Left: The 2.5D Multi-Layer Camera Rig */}
           <div className="expansion-viewport w-full overflow-visible select-none">
             <div className="expansion-camera-rig">
@@ -366,22 +368,23 @@ export default function DataExpansionSequence() {
           </div>
 
           {/* Right: Narrative Story & Engineering Insight Card */}
-          <div className="rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1c1411] to-[#0e0a09] p-8 shadow-2xl md:p-10">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.24em] text-vermilion font-medium">{stage.tag}</span>
-              <span className="font-mono text-xs text-paper/40">GIAI ĐOẠN 0{stage.index + 1}/04</span>
-            </div>
+          <div className="flex min-h-[500px] flex-col justify-between rounded-3xl border border-paper/15 bg-gradient-to-b from-[#1c1411] to-[#0e0a09] p-8 shadow-2xl md:p-10">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-[0.24em] text-vermilion font-medium">{stage.tag}</span>
+                <span className="font-mono text-xs text-paper/40">GIAI ĐOẠN 0{stage.index + 1}/04</span>
+              </div>
 
-            <h3 className="mt-4 font-display text-3xl font-light text-paper md:text-4xl">
-              {stage.title}
-            </h3>
+              <h3 className="mt-4 min-h-[76px] font-display text-3xl font-light text-paper md:text-4xl">
+                {stage.title}
+              </h3>
 
-            <p className="mt-4 text-sm leading-relaxed text-paper/70">
-              {stage.desc}
-            </p>
+              <p className="mt-4 min-h-[64px] text-sm leading-relaxed text-paper/70">
+                {stage.desc}
+              </p>
 
-            {/* Micro Feature Bullet Points */}
-            <div className="mt-8 border-t border-paper/10 pt-6">
+              {/* Micro Feature Bullet Points */}
+              <div className="mt-8 border-t border-paper/10 pt-6">
               <span className="text-[11px] uppercase tracking-[0.2em] text-paper/50">Chi tiết công nghệ & thị giác:</span>
               <ul className="mt-3 space-y-3">
                 <li className="flex items-center gap-3 text-xs text-paper/85">
@@ -403,6 +406,7 @@ export default function DataExpansionSequence() {
                   </span>
                 </li>
               </ul>
+            </div>
             </div>
 
             {/* Quick Next/Prev Step Navigation */}
