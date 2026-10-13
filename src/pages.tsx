@@ -12,6 +12,7 @@ import DataExpansionSequence from "./components/DataExpansionSequence";
 import StatisticsVisualStories from "./components/StatisticsVisualStories";
 import MobileProductViewer from "./components/MobileProductViewer";
 import MobileTransactionStage from "./components/MobileTransactionStage";
+import MobileStatisticsStage from "./components/MobileStatisticsStage";
 import { openPrelaunchSheet, track } from "./lib";
 import {
   type FaqItem,
@@ -226,7 +227,7 @@ function StatisticsProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink overflow-x-hidden">
       <ProductHero page={page} screen="thong-ke" perspective="perspective-right" />
       <div id="mo-phong" className="scroll-mt-20">
-        <MobileProductViewer variant="statistics" id="mobile-statistics-viewer" />
+        <MobileStatisticsStage id="mobile-statistics-stage" />
         <div className="mobile-product-desktop-only">
           <StatisticsShowcase />
           <AnalyticsPerspectiveStage />

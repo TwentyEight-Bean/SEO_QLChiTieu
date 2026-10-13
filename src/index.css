@@ -993,6 +993,26 @@ body {
   }
 }
 
+/* ---------- Mobile Statistics Stage (/thong-ke-tai-chinh) ---------- */
+.mobile-statistics-stage {
+  position: relative;
+  overflow: clip;
+  scroll-margin-top: 4.5rem;
+}
+
+.mobile-stat-device {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-stat-device {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* ---------- Mobile-first product viewers ---------- */
 .mobile-product-desktop-only { display: none; }
 

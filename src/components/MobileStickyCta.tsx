@@ -37,7 +37,9 @@ export default function MobileStickyCta({
 
       // Check if interactive walkthrough stages are in or near viewport
       const activeViewer = Array.from(
-        document.querySelectorAll<HTMLElement>(".mobile-product-viewer, .mobile-transaction-stage")
+        document.querySelectorAll<HTMLElement>(
+          ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage"
+        )
       ).some((el) => {
         const r = el.getBoundingClientRect();
         return r.top < window.innerHeight + 80 && r.bottom > -80;
@@ -63,7 +65,9 @@ export default function MobileStickyCta({
   // Keep the compact walkthrough controls clear while they are on screen.
   useEffect(() => {
     const viewers = Array.from(
-      document.querySelectorAll<HTMLElement>(".mobile-product-viewer, .mobile-transaction-stage")
+      document.querySelectorAll<HTMLElement>(
+        ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage"
+      )
     );
     if (viewers.length === 0) return;
 
