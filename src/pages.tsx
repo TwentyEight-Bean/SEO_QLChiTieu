@@ -328,9 +328,9 @@ function BlogIndex() {
             <span aria-hidden />
             <span>Blog</span>
           </nav>
-          <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">Góc kiến thức</p>
-          <h1 className="mt-5 max-w-4xl font-display text-[clamp(3rem,8vw,7rem)] font-light leading-[1.02]">Blog quản lý chi tiêu</h1>
-          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/70">Các bài viết ngắn, thực tế và có thể áp dụng ngay cho việc ghi chép thu chi, đọc số liệu và lập ngân sách.</p>
+          <p className="mt-6 md:mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">Góc kiến thức</p>
+          <h1 className="mt-4 max-w-4xl font-display text-[clamp(2.25rem,6.5vw,6.5rem)] font-light leading-[1.05]">Blog quản lý chi tiêu</h1>
+          <p className="mt-5 md:mt-8 max-w-2xl text-base md:text-lg leading-relaxed text-paper/70">Các bài viết ngắn, thực tế và có thể áp dụng ngay cho việc ghi chép thu chi, đọc số liệu và lập ngân sách.</p>
           <div className="blog-topic-pills" aria-label="Chủ đề bài viết">
             {topics.slice(1).map((t) => (
               <span key={t} className="blog-topic-pill">{t}</span>
@@ -423,9 +423,9 @@ function ArticlePage({ article }: { article: ArticleDef }) {
             <span aria-hidden />
             <span>{article.nav}</span>
           </nav>
-          <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{article.category}</p>
-          <h1 className="mt-5 font-display text-[clamp(2.15rem,6.2vw,5.5rem)] font-light leading-[1.08] [text-wrap:balance]">{article.title}</h1>
-          <p className="mt-8 max-w-3xl text-lg leading-relaxed text-paper/70">{article.intro}</p>
+          <p className="mt-6 md:mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{article.category}</p>
+          <h1 className="mt-4 max-w-4xl font-display text-[clamp(2.15rem,6.2vw,5.5rem)] font-light leading-[1.08] [text-wrap:balance]">{article.title}</h1>
+          <p className="mt-4 md:mt-8 max-w-3xl text-base md:text-lg leading-relaxed text-paper/70">{article.intro}</p>
           <ReadingMeta article={article} />
         </div>
       </header>
