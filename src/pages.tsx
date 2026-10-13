@@ -10,7 +10,6 @@ import BudgetShowcase from "./components/BudgetShowcase";
 import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
 import DataExpansionSequence from "./components/DataExpansionSequence";
 import StatisticsVisualStories from "./components/StatisticsVisualStories";
-import MobileProductViewer from "./components/MobileProductViewer";
 import MobileTransactionStage from "./components/MobileTransactionStage";
 import MobileStatisticsStage from "./components/MobileStatisticsStage";
 import MobileBudgetStage from "./components/MobileBudgetStage";

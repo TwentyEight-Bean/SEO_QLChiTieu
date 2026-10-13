@@ -10,6 +10,7 @@ const LazyNotFoundPage = lazy(() => import("./pages").then((m) => ({ default: m.
 import { openPrelaunchSheet, storeUrl, submitWaitlist, track, useCountUp, useInView, useScrollProgress } from "./lib";
 import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
 import MobileStickyCta from "./components/MobileStickyCta";
+import MobileHomeStage from "./components/MobileHomeStage";
 
 const d = (s: number): CSSProperties => ({ animationDelay: `${s}s` });
 const [F1, F2, F3] = FEATURES;
@@ -1185,9 +1186,24 @@ export default function App({
   }, [page, path]);
 
   useEffect(() => {
-    if (!page && path === "/" && window.location.hash) {
-      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
-    }
+    if (!window.location.hash) return;
+
+    let attempts = 0;
+    let timer = 0;
+    const scrollToHash = () => {
+      const target = document.getElementById(window.location.hash.slice(1));
+      if (target) {
+        target.scrollIntoView({ block: "start" });
+        return;
+      }
+      if (attempts < 8) {
+        attempts += 1;
+        timer = window.setTimeout(scrollToHash, 60);
+      }
+    };
+
+    scrollToHash();
+    return () => window.clearTimeout(timer);
   }, [page, path]);
 
   return (
@@ -1207,6 +1223,7 @@ export default function App({
       ) : path === "/" ? (
         <main>
           <Hero />
+          <MobileHomeStage id="mobile-home-product" />
           <Interface />
           <FeatureShowcase />
           <DataInMotion />
