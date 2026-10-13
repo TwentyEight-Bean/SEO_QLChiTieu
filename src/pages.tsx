@@ -236,6 +236,9 @@ function StatisticsProductPage({ page }: { page: ProductPageDef }) {
           <StatisticsVisualStories page={page} />
         </div>
       </div>
+      <div className="md:hidden">
+        <ProductContentBody page={page} />
+      </div>
     </main>
   );
 }
