@@ -91,7 +91,7 @@ export default function MobileStickyCta({
   useEffect(() => {
     const targets = Array.from(
       document.querySelectorAll<HTMLElement>(
-        "#tai-ung-dung, .cta-panel, footer, .s6-copy"
+        "#tai-ung-dung, .cta-panel, footer, .s6-copy, .related-links"
       )
     );
 
