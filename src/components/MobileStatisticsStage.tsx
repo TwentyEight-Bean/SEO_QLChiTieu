@@ -425,7 +425,7 @@ export default function MobileStatisticsStage({ id = "mobile-statistics-stage" }
               setIsPlaying(false);
               selectMode(activeIdx - 1, "button");
             }}
-            className="flex size-9 items-center justify-center rounded-full border border-paper/20 bg-paper/5 text-paper transition-all hover:bg-paper/15 active:scale-95 text-xs"
+            className="flex size-11 items-center justify-center rounded-full border border-paper/20 bg-paper/5 text-paper transition-all hover:bg-paper/15 active:scale-95 text-xs focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             aria-label="Góc nhìn trước"
           >
             ←
@@ -441,10 +441,10 @@ export default function MobileStatisticsStage({ id = "mobile-statistics-stage" }
                   setIsPlaying(false);
                   selectMode(idx, "button");
                 }}
-                className={`transition-all duration-300 rounded-full ${
+                className={`transition-all duration-300 rounded-full focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   activeIdx === idx
-                    ? "h-1.5 w-5 bg-gold"
-                    : "size-1.5 bg-paper/25 hover:bg-paper/50"
+                    ? "h-2 w-5 bg-gold"
+                    : "size-2 bg-paper/25 hover:bg-paper/50"
                 }`}
                 aria-label={`Xem ${m.tabLabel}`}
               />
@@ -463,7 +463,7 @@ export default function MobileStatisticsStage({ id = "mobile-statistics-stage" }
                 selectMode(activeIdx + 1, "button");
               }
             }}
-            className="flex min-h-9 items-center gap-1 rounded-full bg-gold px-3.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink shadow-md shadow-gold/30 transition-all hover:opacity-90 active:scale-95"
+            className="flex min-h-11 items-center gap-1 rounded-full bg-gold px-4 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-ink shadow-md shadow-gold/30 transition-all hover:opacity-90 active:scale-95 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             <span>{activeIdx === MODES.length - 1 ? "Xem lại ↺" : "Tiếp theo →"}</span>
           </button>

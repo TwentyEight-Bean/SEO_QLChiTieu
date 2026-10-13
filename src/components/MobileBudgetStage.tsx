@@ -404,7 +404,7 @@ export default function MobileBudgetStage({ id = "mobile-budget-stage" }: { id?:
               setIsPlaying(false);
               selectCat(activeIdx - 1, "button");
             }}
-            className="flex size-9 items-center justify-center rounded-full border border-paper/20 bg-paper/5 text-paper transition-all hover:bg-paper/15 active:scale-95 text-xs"
+            className="flex size-11 items-center justify-center rounded-full border border-paper/20 bg-paper/5 text-paper transition-all hover:bg-paper/15 active:scale-95 text-xs focus-visible:ring-2 focus-visible:ring-vermilion focus-visible:outline-none"
             aria-label="Nhóm trước"
           >
             ←
@@ -420,12 +420,12 @@ export default function MobileBudgetStage({ id = "mobile-budget-stage" }: { id?:
                   setIsPlaying(false);
                   selectCat(idx, "button");
                 }}
-                className={`transition-all duration-300 rounded-full ${
+                className={`transition-all duration-300 rounded-full focus-visible:ring-2 focus-visible:ring-vermilion focus-visible:outline-none ${
                   activeIdx === idx
                     ? idx === 2
-                      ? "h-1.5 w-5 bg-rose-400"
-                      : "h-1.5 w-5 bg-vermilion"
-                    : "size-1.5 bg-paper/25 hover:bg-paper/50"
+                      ? "h-2 w-5 bg-rose-400"
+                      : "h-2 w-5 bg-vermilion"
+                    : "size-2 bg-paper/25 hover:bg-paper/50"
                 }`}
                 aria-label={`Xem nhóm ${c.name}`}
               />
@@ -444,7 +444,7 @@ export default function MobileBudgetStage({ id = "mobile-budget-stage" }: { id?:
                 selectCat(activeIdx + 1, "button");
               }
             }}
-            className={`flex min-h-9 items-center gap-1 rounded-full px-3.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-paper shadow-md transition-all hover:opacity-90 active:scale-95 ${
+            className={`flex min-h-11 items-center gap-1 rounded-full px-4 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-paper shadow-md transition-all hover:opacity-90 active:scale-95 focus-visible:ring-2 focus-visible:ring-vermilion focus-visible:outline-none ${
               activeIdx === 2
                 ? "bg-[#d9534f] shadow-rose-950/30"
                 : "bg-vermilion shadow-vermilion/30"
