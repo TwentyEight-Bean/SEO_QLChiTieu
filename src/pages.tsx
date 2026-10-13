@@ -14,6 +14,7 @@ import MobileProductViewer from "./components/MobileProductViewer";
 import MobileTransactionStage from "./components/MobileTransactionStage";
 import MobileStatisticsStage from "./components/MobileStatisticsStage";
 import MobileBudgetStage from "./components/MobileBudgetStage";
+import MobileFeaturesStage from "./components/MobileFeaturesStage";
 import { openPrelaunchSheet, track } from "./lib";
 import {
   type FaqItem,
@@ -275,7 +276,7 @@ function FeaturesProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="thu-chi" perspective="hero" />
       <div id="mo-phong" className="scroll-mt-20">
-        <MobileProductViewer variant="features" id="mobile-features-viewer" />
+        <MobileFeaturesStage id="mobile-features-stage" />
         <div className="mobile-product-desktop-only">
           <FeatureEcosystemShowcase />
         </div>
