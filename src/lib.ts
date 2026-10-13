@@ -84,16 +84,19 @@ export async function submitWaitlist(
 
   track("waitlist_submit", { source });
 
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15000);
   try {
     const res = await fetch("/api/waitlist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: cleanEmail, source, hp: honeypot }),
+      signal: controller.signal,
     });
 
     const data = await res.json().catch(() => ({}));
 
-    if (res.status === 200 || res.status === 201) {
+    if ((res.status === 200 || res.status === 201) && data.ok === true) {
       track("waitlist_success", { source });
       return {
         ok: true,
@@ -118,20 +121,19 @@ export async function submitWaitlist(
       };
     }
 
-    // Server fallback
     return {
-      ok: true,
-      status: "success",
-      message: "Đã ghi nhận email của bạn vào danh sách chờ.",
+      ok: false,
+      status: "error",
+      message: "Chưa thể lưu đăng ký lúc này. Vui lòng thử lại sau.",
     };
   } catch {
-    // Graceful offline/mock mode for static environments
-    track("waitlist_success", { source, fallback: true });
     return {
-      ok: true,
-      status: "success",
-      message: "Đã lưu thông tin đăng ký vào danh sách chờ thành công.",
+      ok: false,
+      status: "error",
+      message: "Chưa thể kết nối. Kiểm tra kết nối mạng rồi thử lại; đăng ký của bạn chưa được xác nhận.",
     };
+  } finally {
+    window.clearTimeout(timeout);
   }
 }
 

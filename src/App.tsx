@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import Phone from "./Phone";
 import { lazy, Suspense } from "react";
 import { APP, CATEGORIES, FEATURES, MONTHS, STORES, TREND } from "./config";
@@ -435,7 +435,14 @@ function Nav({
             <ol>
               {MENU_ITEMS.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} onClick={() => setMenuOpen(false)}>
+                  <Link href={item.href} onClick={(event) => {
+                    setMenuOpen(false);
+                    if (currentPath === "/" && window.innerWidth < 768 && item.href === "/#trai-nghiem") {
+                      event.preventDefault();
+                      window.location.hash = "mobile-home-product";
+                      requestAnimationFrame(() => document.getElementById("mobile-home-product")?.scrollIntoView({ block: "start" }));
+                    }
+                  }}>
                     <span>{item.num}</span>
                     {item.label}
                     <i aria-hidden>↗</i>
@@ -661,10 +668,10 @@ function Nav({
 /* ---------- SCENE 01 ---------- */
 function Hero() {
   return (
-    <section id="top" data-scene aria-labelledby="h1" className="relative isolate flex min-h-svh items-center overflow-hidden bg-ink">
+    <section id="top" data-scene aria-labelledby="h1" className="home-hero relative isolate flex min-h-svh items-center overflow-hidden bg-ink">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_45%,#2a211c_0%,#0c0a09_62%)]" />
-      <div className="mx-auto grid w-full max-w-[1500px] items-center gap-10 px-6 pb-28 pt-28 md:grid-cols-[1.05fr_1fr] md:px-10 md:pb-16">
-        <div className="order-1 md:order-1">
+      <div className="home-hero-grid mx-auto grid w-full max-w-[1500px] items-center gap-10 px-6 pb-28 pt-28 md:grid-cols-[1.05fr_1fr] md:px-10 md:pb-16">
+        <div className="home-hero-copy order-1 md:order-1">
           <div>
             <Eyebrow n="一">Ứng dụng quản lý chi tiêu</Eyebrow>
           </div>
@@ -689,7 +696,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="order-2 flex justify-center md:order-2 mt-4 md:mt-0" style={{ perspective: "1400px" }}>
+        <div className="home-hero-product order-2 flex justify-center md:order-2 mt-4 md:mt-0" style={{ perspective: "1400px" }}>
           <div className="hero-stage relative flex items-center justify-center">
             <div
               aria-hidden
@@ -697,13 +704,15 @@ function Hero() {
               style={{ boxShadow: "0 0 140px 20px rgba(210,58,34,0.25)" }}
             />
             <div aria-hidden className="absolute size-[min(92vw,620px)] rounded-full border border-paper/10" />
+            <div className="home-hero-secondary" aria-hidden="true"><Phone src={F2.shot} screen={F2.id} alt="" w="156px" /></div>
             <Phone
               className="hero-phone"
               src={F1.shot}
               screen={F1.id}
               alt={`Màn hình chính của ứng dụng ${APP.name}`}
-              w="clamp(220px, 64vw, 310px)"
+              w="var(--home-phone-width, clamp(220px, 64vw, 310px))"
             />
+            <div className="home-hero-receipt" aria-hidden="true"><span>Vừa ghi nhận</span><strong>−45.000 ₫</strong><span>Cà phê sáng · Ăn uống</span></div>
           </div>
         </div>
       </div>
@@ -812,16 +821,17 @@ function DataInMotion() {
   const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x},${y}`).join(" ");
 
   return (
-    <section id="du-lieu" data-scene ref={ref} aria-labelledby="h-s4" className={`${seen ? "in" : ""} relative bg-washi px-6 py-28 text-ink md:px-10 md:py-40`}>
+    <section id="du-lieu" data-scene ref={ref} aria-labelledby="h-s4" className={`home-data ${seen ? "in" : ""} relative bg-washi px-6 py-28 text-ink md:px-10 md:py-40`}>
       <div className="mx-auto max-w-[1300px]">
         <Eyebrow n="四">Số liệu</Eyebrow>
         <h2 id="h-s4" className="mt-6 max-w-2xl font-display text-[clamp(2.2rem,5vw,4.6rem)] font-light leading-[1.06]">
           Những con số.<br /><em className="text-vermilion">Giờ đây dễ hiểu hơn.</em>
         </h2>
 
-        <div className="mt-16 grid gap-14 md:mt-24 md:grid-cols-2 md:gap-20">
-          <figure>
-            <div className="flex items-center gap-8">
+        <div className="home-data-grid mt-16 grid gap-14 md:mt-24 md:grid-cols-2 md:gap-20">
+          <figure className="home-data-category">
+            <div className="home-data-origin" aria-hidden="true"><Phone src={F2.shot} screen={F2.id} alt="" w="136px" /><span>THỐNG KÊ / SỔ CHI</span></div>
+            <div className="home-chart-layout flex items-center gap-8">
               <svg viewBox="0 0 240 240" role="img" aria-label="Biểu đồ tròn minh họa cơ cấu chi tiêu theo nhóm" className="w-[min(52vw,260px)] shrink-0 -rotate-90">
                 {CATEGORIES.map((c, i) => {
                   const len = (c.pct / 100) * C;
@@ -837,6 +847,7 @@ function DataInMotion() {
                     />
                   );
                 })}
+                <g className="home-donut-reading" transform="rotate(90 120 120)" aria-hidden="true"><text x="120" y="119" textAnchor="middle">{CATEGORIES[active ?? 0].pct}%</text><text x="120" y="143" textAnchor="middle">{CATEGORIES[active ?? 0].name}</text></g>
               </svg>
               <ul className="space-y-1 text-sm">
                 {CATEGORIES.map((c, i) => (
@@ -845,8 +856,9 @@ function DataInMotion() {
                       onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}
                       onFocus={() => setActive(i)} onBlur={() => setActive(null)}
                       onClick={() => { setActive(i); track("product_demo_interaction", { chart: "category", item: c.name }); }}
+                      aria-pressed={active === i}
                       className="flex min-h-10 items-center gap-3 text-left transition-opacity duration-200"
-                      style={{ opacity: active === null || active === i ? 1 : 0.45 }}
+                      style={{ "--category-visibility": active === null || active === i ? 1 : 0.45 } as CSSProperties}
                     >
                       <span className="size-3 rounded-full" style={{ background: c.color }} />
                       <span className="w-20">{c.name}</span>
@@ -859,7 +871,7 @@ function DataInMotion() {
             <figcaption className="mt-6 text-xs text-ink/55">Cơ cấu chi tiêu theo nhóm. Dữ liệu minh họa.</figcaption>
           </figure>
 
-          <figure>
+          <figure className="home-data-trend">
             <p className="text-xs uppercase tracking-[0.25em] text-ink/55">Tổng chi trong kỳ</p>
             <p className="mt-2 font-display text-[clamp(2.4rem,5vw,4.4rem)] font-light tabular-nums">
               {total.toLocaleString("vi-VN")} <span className="text-vermilion">₫</span>
@@ -955,14 +967,14 @@ function Experience() {
 function FinalReveal() {
   const ref = useRef<HTMLElement>(null);
   useScrollProgress(ref);
-  const w = "clamp(170px, 20vw, 280px)";
+  const w = "var(--home-waitlist-phone-width, clamp(170px, 20vw, 280px))";
   return (
-    <section id="tai-ung-dung" data-scene ref={ref} aria-labelledby="h-s6" className="scroll-scene s6 h-[230svh] bg-ink" style={{ "--p": 0 } as CSSProperties}>
+    <section id="tai-ung-dung" data-scene ref={ref} aria-labelledby="h-s6" className="home-waitlist scroll-scene s6 h-[230svh] bg-ink" style={{ "--p": 0 } as CSSProperties}>
       <div className="stage">
         <div className="s3-dev s6-l"><Phone src={F2.shot} screen={F2.id} alt={F2.title} w={w} /></div>
         <div className="s3-dev s6-r"><Phone src={F3.shot} screen={F3.id} alt={F3.title} w={w} /></div>
         <div className="s3-dev s6-c"><Phone src={F1.shot} screen={F1.id} alt={F1.title} w={w} /></div>
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-ink via-ink/70 to-transparent" style={{ opacity: "clamp(0, calc((var(--p) - 0.45) * 3), 1)" }} aria-hidden />
+        <div className="home-waitlist-shade absolute inset-0 z-10 bg-gradient-to-t from-ink via-ink/70 to-transparent" style={{ opacity: "clamp(0, calc((var(--p) - 0.45) * 3), 1)" }} aria-hidden />
         <div className="s6-copy absolute inset-x-6 bottom-24 z-20 text-paper md:inset-x-[7vw] md:bottom-[9svh]">
           <div className="flex items-center gap-3 text-sm uppercase tracking-[0.3em] text-paper/70">
             <span className="size-3 rounded-full bg-vermilion" aria-hidden /> {APP.name}
@@ -1102,6 +1114,7 @@ export default function App({
   const path = usePath(initialPath);
   const page = getRoute(path);
   const [isPrelaunchOpen, setIsPrelaunchOpen] = useState(false);
+  const closePrelaunch = useCallback(() => setIsPrelaunchOpen(false), []);
   const [prelaunchSource, setPrelaunchSource] = useState("mobile");
 
   useEffect(() => {
@@ -1195,7 +1208,9 @@ export default function App({
     let attempts = 0;
     let timer = 0;
     const scrollToHash = () => {
-      const target = document.getElementById(window.location.hash.slice(1));
+      const hash = window.location.hash.slice(1);
+      const targetId = path === "/" && window.innerWidth < 768 && ["trai-nghiem", "tinh-nang", "demo"].includes(hash) ? "mobile-home-product" : hash;
+      const target = document.getElementById(targetId);
       if (target) {
         target.scrollIntoView({ block: "start" });
         return;
@@ -1225,7 +1240,7 @@ export default function App({
           <ResolvedContentPage page={page} />
         </Suspense>
       ) : path === "/" ? (
-        <main>
+        <main className="homepage">
           <Hero />
           <MobileHomeStage id="mobile-home-product" />
           <Interface />
@@ -1242,7 +1257,7 @@ export default function App({
       <Footer />
       <MobilePrelaunchSheet
         isOpen={isPrelaunchOpen}
-        onClose={() => setIsPrelaunchOpen(false)}
+        onClose={closePrelaunch}
         source={prelaunchSource}
       />
     </>

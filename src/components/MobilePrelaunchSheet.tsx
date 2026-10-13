@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { track, submitWaitlist } from "../lib";
+import { submitWaitlist } from "../lib";
 
 interface MobilePrelaunchSheetProps {
   isOpen: boolean;
@@ -18,9 +18,12 @@ export default function MobilePrelaunchSheet({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [invalidEmail, setInvalidEmail] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const successRef = useRef<HTMLHeadingElement>(null);
+  const inFlight = useRef(false);
 
   // Focus management & Escape key & Body scroll lock
   useEffect(() => {
@@ -28,14 +31,15 @@ export default function MobilePrelaunchSheet({
 
     // Prevent background scrolling
     const originalOverflow = document.body.style.overflow;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.body.style.overflow = "hidden";
 
     // Focus input or first focusable element
     const focusTimer = setTimeout(() => {
       if (inputRef.current) {
-        inputRef.current.focus();
+        inputRef.current.focus({ preventScroll: true });
       } else if (closeButtonRef.current) {
-        closeButtonRef.current.focus();
+        closeButtonRef.current.focus({ preventScroll: true });
       }
     }, 120);
 
@@ -47,18 +51,18 @@ export default function MobilePrelaunchSheet({
 
       // Simple focus trap
       if (e.key === "Tab" && sheetRef.current) {
-        const focusable = sheetRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
+        const focusable = Array.from(sheetRef.current.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), [href], input:not(:disabled):not([tabindex="-1"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => el.getClientRects().length > 0 && !el.closest('[aria-hidden="true"]'));
         if (focusable.length === 0) return;
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
 
-        if (e.shiftKey && document.activeElement === first) {
+        if (e.shiftKey && (document.activeElement === first || !focusable.includes(document.activeElement as HTMLElement))) {
           e.preventDefault();
           last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
+        } else if (!e.shiftKey && (document.activeElement === last || !focusable.includes(document.activeElement as HTMLElement))) {
           e.preventDefault();
           first.focus();
         }
@@ -71,25 +75,56 @@ export default function MobilePrelaunchSheet({
       clearTimeout(focusTimer);
       document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && submitted) successRef.current?.focus({ preventScroll: true });
+  }, [isOpen, submitted]);
+
+  // Keep the panel above the on-screen keyboard without moving the background.
+  useEffect(() => {
+    if (!isOpen || !window.visualViewport) return;
+    const viewport = window.visualViewport;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      sheetRef.current?.style.setProperty("--sheet-viewport-height", `${viewport.height}px`);
+      sheetRef.current?.style.setProperty("--sheet-bottom-offset", `${Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)}px`);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    viewport.addEventListener("resize", schedule);
+    viewport.addEventListener("scroll", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      viewport.removeEventListener("resize", schedule);
+      viewport.removeEventListener("scroll", schedule);
+    };
+  }, [isOpen]);
 
   // Handle Form Submission with Real Backend
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) return;
+    if (inFlight.current) return;
 
+    inFlight.current = true;
     setIsSubmitting(true);
     setErrorMessage("");
+    setInvalidEmail(false);
 
     const res = await submitWaitlist(email, source, honeypot);
     setIsSubmitting(false);
+    inFlight.current = false;
 
     if (res.ok) {
       setStatusMessage(res.message);
       setSubmitted(true);
     } else {
       setErrorMessage(res.message);
+      setInvalidEmail(res.status === "invalid_email");
+      if (res.status === "invalid_email") inputRef.current?.focus({ preventScroll: true });
     }
   };
 
@@ -98,6 +133,7 @@ export default function MobilePrelaunchSheet({
     setHoneypot("");
     setSubmitted(false);
     setErrorMessage("");
+    setInvalidEmail(false);
     setStatusMessage("");
     onClose();
   };
@@ -176,7 +212,7 @@ export default function MobilePrelaunchSheet({
               Nhận thông báo ngay khi ứng dụng chính thức sẵn sàng.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="mt-6 space-y-4">
               {/* Anti-spam Honeypot field (hidden from real users) */}
               <div className="hidden" aria-hidden="true">
                 <input
@@ -204,17 +240,22 @@ export default function MobilePrelaunchSheet({
                     name="email"
                     inputMode="email"
                     autoComplete="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    enterKeyHint="send"
+                    aria-invalid={invalidEmail || undefined}
+                    aria-describedby={errorMessage ? "sheet-email-note sheet-email-error" : "sheet-email-note"}
                     required
                     placeholder="ban@email.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="min-h-12 w-full rounded-2xl border border-paper/20 bg-paper/5 px-4 text-sm text-paper placeholder:text-paper/40 focus:border-vermilion focus:bg-paper/10 focus:outline-none focus:ring-1 focus:ring-vermilion"
+                    onChange={(e) => { setEmail(e.target.value); setInvalidEmail(false); setErrorMessage(""); }}
+                    className="min-h-12 w-full rounded-2xl border border-paper/20 bg-paper/5 px-4 text-base text-paper placeholder:text-paper/60 focus:border-vermilion focus:bg-paper/10 focus:outline-none focus:ring-1 focus:ring-vermilion"
                   />
                 </div>
               </div>
 
               {errorMessage && (
-                <p className="rounded-xl bg-vermilion/15 border border-vermilion/30 px-3 py-2 text-xs text-paper/90" role="alert">
+                <p id="sheet-email-error" className="rounded-xl bg-vermilion/15 border border-vermilion/30 px-3 py-2 text-sm text-paper/90" role="alert">
                   {errorMessage}
                 </p>
               )}
@@ -233,10 +274,11 @@ export default function MobilePrelaunchSheet({
                   →
                 </span>
               </button>
+              <p role="status" className="sr-only">{isSubmitting ? "Đang gửi đăng ký." : ""}</p>
 
               {/* Privacy & Contact disclosure */}
-              <div className="text-center text-[11px] text-paper/50 pt-1 space-y-1">
-                <p>Cam kết bảo mật: Chúng tôi chỉ gửi một email khi ứng dụng ra mắt.</p>
+              <div className="text-center text-xs leading-relaxed text-paper/70 pt-1 space-y-1">
+                <p id="sheet-email-note">Cam kết bảo mật: Chúng tôi chỉ gửi một email khi ứng dụng ra mắt.</p>
                 <p>
                   Bạn có thể chủ động{" "}
                   <a href="/huy-dang-ky" className="underline hover:text-paper">
@@ -254,8 +296,8 @@ export default function MobilePrelaunchSheet({
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <h3 className="mt-4 font-display text-2xl font-light text-paper">
-              ✓ Đã ghi nhận
+            <h3 id="sheet-prelaunch-title" ref={successRef} tabIndex={-1} className="mt-4 font-display text-2xl font-light text-paper">
+              Đã ghi nhận
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-paper/70">
               {statusMessage || "Chúng tôi sẽ gửi thông báo đến bạn khi Sổ Chi chính thức ra mắt."}

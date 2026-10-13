@@ -9,6 +9,10 @@ export function getCriticalCss(rootDir) {
 /* --- SỔ CHI CRITICAL RENDERING PATH CSS --- */
 ${fontsCss}
 
+/* The full stylesheet must override this first-paint fallback, including
+   responsive utilities such as hidden + md:block. */
+@layer critical, properties, theme, base, components, utilities;
+@layer critical {
 :root {
   --font-display: 'Noto Serif Display', 'Times New Roman', serif;
   --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
@@ -131,5 +135,6 @@ body {
 .hero-phone { position: relative; z-index: 10; }
 .phone { position: relative; width: min(84vw, 320px); aspect-ratio: 9/19.5; border-radius: 44px; background: #17120f; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7), inset 0 0 0 2px rgba(242,236,223,0.12); padding: 10px; }
 .phone-screen { position: relative; width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: #0c0a09; }
+}
 `;
 }

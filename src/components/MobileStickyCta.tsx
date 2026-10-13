@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { track } from "../lib";
+import { usePath } from "../router";
 
 interface MobileStickyCtaProps {
   onOpenSheet: () => void;
@@ -15,6 +16,18 @@ export default function MobileStickyCta({
   const [pastHero, setPastHero] = useState(false);
   const [finalCtaInView, setFinalCtaInView] = useState(false);
   const [viewerInView, setViewerInView] = useState(false);
+  const [homeFinalNear, setHomeFinalNear] = useState(false);
+  const path = usePath();
+
+  useEffect(() => {
+    setHomeFinalNear(false);
+    if (path !== "/") return;
+    const final = document.querySelector("#tai-ung-dung.home-waitlist");
+    if (!final) return;
+    const observer = new IntersectionObserver(([entry]) => setHomeFinalNear(entry.isIntersecting), { rootMargin: "0px 0px 140px 0px", threshold: 0 });
+    observer.observe(final);
+    return () => observer.disconnect();
+  }, [path]);
 
   // 1. Detect scroll past hero
   useEffect(() => {
@@ -38,7 +51,7 @@ export default function MobileStickyCta({
       // Check if interactive walkthrough stages are in or near viewport
       const activeViewer = Array.from(
         document.querySelectorAll<HTMLElement>(
-          ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage"
+          ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage, .home-data-category"
         )
       ).some((el) => {
         const r = el.getBoundingClientRect();
@@ -66,7 +79,7 @@ export default function MobileStickyCta({
   useEffect(() => {
     const viewers = Array.from(
       document.querySelectorAll<HTMLElement>(
-        ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage"
+        ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage, .home-data-category"
       )
     );
     if (viewers.length === 0) return;
@@ -123,7 +136,7 @@ export default function MobileStickyCta({
     };
   }, []);
 
-  const isVisible = pastHero && !finalCtaInView && !viewerInView && !isSheetOpen && !menuOpen;
+  const isVisible = pastHero && !finalCtaInView && !homeFinalNear && !viewerInView && !isSheetOpen && !menuOpen;
 
   return (
     <div
