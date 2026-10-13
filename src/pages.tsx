@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Phone from "./Phone";
+import Phone, { type PhoneScreen } from "./Phone";
 import { APP, CATEGORIES, FEATURES } from "./config";
 import { Link } from "./router";
 import DeviceMockup from "./components/DeviceMockup";
@@ -10,6 +10,8 @@ import BudgetShowcase from "./components/BudgetShowcase";
 import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
 import DataExpansionSequence from "./components/DataExpansionSequence";
 import StatisticsVisualStories from "./components/StatisticsVisualStories";
+import MobileProductViewer from "./components/MobileProductViewer";
+import MobileTransactionStage from "./components/MobileTransactionStage";
 import { openPrelaunchSheet, track } from "./lib";
 import {
   type FaqItem,
@@ -106,6 +108,13 @@ function ProductHero({ page, screen, perspective }: { page: ProductPageDef; scre
           <div className="mt-9 flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-paper/65">
             {page.metrics.map((metric) => <span key={metric} className="rounded-full border border-paper/20 px-4 py-2">{metric}</span>)}
           </div>
+          <button
+            type="button"
+            onClick={() => openPrelaunchSheet("product_hero_mobile")}
+            className="product-hero-mobile-cta mt-6 hidden min-h-12 items-center justify-center rounded-full bg-vermilion px-6 text-sm font-semibold text-paper active:scale-[0.97]"
+          >
+            Nhận thông báo <span aria-hidden className="ml-2">→</span>
+          </button>
         </div>
         <figure className="product-hero-phone justify-self-center">
           <DeviceMockup
@@ -217,11 +226,14 @@ function StatisticsProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink overflow-x-hidden">
       <ProductHero page={page} screen="thong-ke" perspective="perspective-right" />
       <div id="mo-phong" className="scroll-mt-20">
-        <StatisticsShowcase />
-        <AnalyticsPerspectiveStage />
+        <MobileProductViewer variant="statistics" id="mobile-statistics-viewer" />
+        <div className="mobile-product-desktop-only">
+          <StatisticsShowcase />
+          <AnalyticsPerspectiveStage />
+          <DataExpansionSequence />
+          <StatisticsVisualStories page={page} />
+        </div>
       </div>
-      <DataExpansionSequence />
-      <StatisticsVisualStories page={page} />
     </main>
   );
 }
@@ -231,7 +243,10 @@ function TransactionProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="thu-chi" perspective="perspective-left" />
       <div id="mo-phong" className="scroll-mt-20">
-        <TransactionFlowShowcase />
+        <MobileTransactionStage id="mobile-transactions-stage" />
+        <div className="mobile-product-desktop-only">
+          <TransactionFlowShowcase />
+        </div>
       </div>
       <ProductContentBody page={page} />
     </main>
@@ -243,7 +258,10 @@ function BudgetProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="ngan-sach" perspective="perspective-right" />
       <div id="mo-phong" className="scroll-mt-20">
-        <BudgetShowcase />
+        <MobileProductViewer variant="budget" id="mobile-budget-viewer" />
+        <div className="mobile-product-desktop-only">
+          <BudgetShowcase />
+        </div>
       </div>
       <ProductContentBody page={page} />
     </main>
@@ -255,7 +273,10 @@ function FeaturesProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="thu-chi" perspective="hero" />
       <div id="mo-phong" className="scroll-mt-20">
-        <FeatureEcosystemShowcase />
+        <MobileProductViewer variant="features" id="mobile-features-viewer" />
+        <div className="mobile-product-desktop-only">
+          <FeatureEcosystemShowcase />
+        </div>
       </div>
       <ProductContentBody page={page} />
     </main>
@@ -719,5 +740,3 @@ export default function ContentPage({ page }: { page: RouteDef }) {
   if (page.path === "/huy-dang-ky") return <UnsubscribePage page={page} />;
   return <ProductPage page={page} />;
 }
-
-
