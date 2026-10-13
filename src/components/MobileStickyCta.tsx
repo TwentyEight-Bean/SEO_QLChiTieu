@@ -14,6 +14,7 @@ export default function MobileStickyCta({
 }: MobileStickyCtaProps) {
   const [pastHero, setPastHero] = useState(false);
   const [finalCtaInView, setFinalCtaInView] = useState(false);
+  const [viewerInView, setViewerInView] = useState(false);
 
   // 1. Detect scroll past hero
   useEffect(() => {
@@ -33,6 +34,17 @@ export default function MobileStickyCta({
       } else {
         setPastHero(window.scrollY > 280);
       }
+
+      // Check if interactive walkthrough stages are in or near viewport
+      const activeViewer = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage"
+        )
+      ).some((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top < window.innerHeight + 80 && r.bottom > -80;
+      });
+      setViewerInView(activeViewer);
     };
 
     const onScroll = () => {
@@ -50,11 +62,36 @@ export default function MobileStickyCta({
     };
   }, []);
 
+  // Keep the compact walkthrough controls clear while they are on screen.
+  useEffect(() => {
+    const viewers = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".mobile-product-viewer, .mobile-transaction-stage, .mobile-statistics-stage, .mobile-budget-stage, .mobile-features-stage, .mobile-home-stage"
+      )
+    );
+    if (viewers.length === 0) return;
+
+    const visible = new Set<Element>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        });
+        setViewerInView(visible.size > 0);
+      },
+      { threshold: 0, rootMargin: "140px 0px 140px 0px" }
+    );
+
+    viewers.forEach((viewer) => observer.observe(viewer));
+    return () => observer.disconnect();
+  }, []);
+
   // 2. IntersectionObserver to hide when final CTA section or footer enters viewport
   useEffect(() => {
     const targets = Array.from(
       document.querySelectorAll<HTMLElement>(
-        "#tai-ung-dung, .cta-panel, footer, .s6-copy"
+        "#tai-ung-dung, .cta-panel, footer, .s6-copy, .related-links"
       )
     );
 
@@ -86,12 +123,12 @@ export default function MobileStickyCta({
     };
   }, []);
 
-  const isVisible = pastHero && !finalCtaInView && !isSheetOpen && !menuOpen;
+  const isVisible = pastHero && !finalCtaInView && !viewerInView && !isSheetOpen && !menuOpen;
 
   return (
     <div
       aria-hidden={!isVisible}
-      className={`fixed inset-x-4 z-40 mx-auto max-w-sm md:hidden transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      className={`mobile-sticky-cta fixed inset-x-4 z-40 mx-auto max-w-sm md:hidden transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isVisible
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 translate-y-6 pointer-events-none"
@@ -107,16 +144,16 @@ export default function MobileStickyCta({
           track("hero_download_click", { source: "sticky_mobile" });
           onOpenSheet();
         }}
-        className="group relative flex min-h-12 w-full cursor-pointer items-center justify-between rounded-full bg-vermilion px-5 py-3 text-sm font-medium text-paper shadow-[0_8px_24px_rgba(0,0,0,0.65),0_2px_8px_rgba(210,58,34,0.35)] transition-transform duration-200 active:scale-[0.98] select-none"
+        className="group relative flex min-h-12 w-full cursor-pointer items-center justify-between rounded-full border border-paper/15 bg-lacquer/95 px-4 py-2.5 text-sm font-medium text-paper shadow-[0_8px_24px_rgba(12,10,9,0.35)] backdrop-blur-xl transition-transform duration-200 active:scale-[0.97] select-none"
         aria-label="Nhận thông báo khi ra mắt"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <span
-            className="size-2 rounded-full bg-paper/90 animate-pulse shrink-0"
+            className="size-2 rounded-full bg-vermilion shrink-0"
             aria-hidden
           />
           <span className="truncate tracking-normal text-[13.5px]">
-            Nhận thông báo khi ra mắt
+            Nhận thông báo
           </span>
         </div>
         <span

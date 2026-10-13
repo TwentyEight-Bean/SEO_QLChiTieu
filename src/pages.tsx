@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Phone from "./Phone";
+import Phone, { type PhoneScreen } from "./Phone";
 import { APP, CATEGORIES, FEATURES } from "./config";
 import { Link } from "./router";
 import DeviceMockup from "./components/DeviceMockup";
@@ -10,6 +10,11 @@ import BudgetShowcase from "./components/BudgetShowcase";
 import FeatureEcosystemShowcase from "./components/FeatureEcosystemShowcase";
 import DataExpansionSequence from "./components/DataExpansionSequence";
 import StatisticsVisualStories from "./components/StatisticsVisualStories";
+import MobileTransactionStage from "./components/MobileTransactionStage";
+import MobileStatisticsStage from "./components/MobileStatisticsStage";
+import MobileBudgetStage from "./components/MobileBudgetStage";
+import MobileFeaturesStage from "./components/MobileFeaturesStage";
+import MobileHeroArt, { ProductEditorialFigure, type ProductArtKind } from "./components/MobileProductArt";
 import { openPrelaunchSheet, track } from "./lib";
 import {
   type FaqItem,
@@ -83,11 +88,16 @@ function FaqSection({ items }: { items: FaqItem[] }) {
 
 /* ---------- Product Pages: Specialized 2.5D Visual Implementations ---------- */
 
+function productArtKind(page: ProductPageDef): ProductArtKind | undefined {
+  return ({ "/quan-ly-thu-chi": "transactions", "/thong-ke-tai-chinh": "statistics", "/lap-ngan-sach": "budget", "/tinh-nang": "features" } as Record<string, ProductArtKind>)[page.path];
+}
+
 function ProductHero({ page, screen, perspective }: { page: ProductPageDef; screen: PhoneScreen; perspective: "hero" | "perspective-left" | "perspective-right" }) {
+  const artKind = productArtKind(page);
   const feature = page.featureId ? featureById[page.featureId] : featureById[screen === "thong-ke" ? "thong-ke" : screen === "ngan-sach" ? "ngan-sach" : "thu-chi"];
 
   return (
-    <header className="product-page-hero relative isolate overflow-hidden bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
+    <header data-product-art={artKind} className="product-page-hero relative isolate overflow-hidden bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_75%_35%,#2a211c_0%,#0c0a09_62%)]" />
       <div className="absolute right-[-18vw] top-20 -z-10 size-[min(90vw,680px)] rounded-full border border-paper/10" aria-hidden>
         <span className="absolute inset-[18%] rounded-full border border-vermilion/25" />
@@ -106,8 +116,16 @@ function ProductHero({ page, screen, perspective }: { page: ProductPageDef; scre
           <div className="mt-9 flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-paper/65">
             {page.metrics.map((metric) => <span key={metric} className="rounded-full border border-paper/20 px-4 py-2">{metric}</span>)}
           </div>
+          <button
+            type="button"
+            onClick={() => openPrelaunchSheet("product_hero_mobile")}
+            className="product-hero-mobile-cta mt-6 hidden min-h-12 items-center justify-center rounded-full bg-vermilion px-6 text-sm font-semibold text-paper active:scale-[0.97]"
+          >
+            Nhận thông báo <span aria-hidden className="ml-2">→</span>
+          </button>
         </div>
         <figure className="product-hero-phone justify-self-center">
+          {artKind && <MobileHeroArt kind={artKind} />}
           <DeviceMockup
             screen={screen}
             src={feature.shot}
@@ -123,6 +141,7 @@ function ProductHero({ page, screen, perspective }: { page: ProductPageDef; scre
 }
 
 function ProductContentBody({ page }: { page: ProductPageDef }) {
+  const artKind = productArtKind(page);
   const related = page.related.map((path) => ALL_PAGES.find((item) => item.path === path)).filter(Boolean) as RouteDef[];
   const tocItems = [
     { href: "#mo-phong", label: "00 Trực quan" },
@@ -132,7 +151,7 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
   ];
 
   return (
-    <section className="washi px-6 py-20 md:px-10 md:py-28">
+    <section data-product-editorial={artKind} className="washi px-6 py-20 md:px-10 md:py-28">
       <div className="mx-auto grid max-w-[1200px] gap-8 lg:gap-14 lg:grid-cols-[260px_minmax(0,780px)] lg:justify-between">
         {/* Mobile Collapsible TOC */}
         <details className="block lg:hidden rounded-2xl border border-ink/15 bg-paper/60 p-4 shadow-sm group">
@@ -174,6 +193,7 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
                   {section.list.map((item) => <li key={item}>{item}</li>)}
                 </ul>
               )}
+              {index === 0 && artKind && <ProductEditorialFigure kind={artKind} />}
             </section>
           ))}
 
@@ -217,11 +237,17 @@ function StatisticsProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink overflow-x-hidden">
       <ProductHero page={page} screen="thong-ke" perspective="perspective-right" />
       <div id="mo-phong" className="scroll-mt-20">
-        <StatisticsShowcase />
-        <AnalyticsPerspectiveStage />
+        <MobileStatisticsStage id="mobile-statistics-stage" />
+        <div className="mobile-product-desktop-only">
+          <StatisticsShowcase />
+          <AnalyticsPerspectiveStage />
+          <DataExpansionSequence />
+          <StatisticsVisualStories page={page} />
+        </div>
       </div>
-      <DataExpansionSequence />
-      <StatisticsVisualStories page={page} />
+      <div className="md:hidden">
+        <ProductContentBody page={page} />
+      </div>
     </main>
   );
 }
@@ -231,7 +257,10 @@ function TransactionProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="thu-chi" perspective="perspective-left" />
       <div id="mo-phong" className="scroll-mt-20">
-        <TransactionFlowShowcase />
+        <MobileTransactionStage id="mobile-transactions-stage" />
+        <div className="mobile-product-desktop-only">
+          <TransactionFlowShowcase />
+        </div>
       </div>
       <ProductContentBody page={page} />
     </main>
@@ -243,7 +272,10 @@ function BudgetProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="ngan-sach" perspective="perspective-right" />
       <div id="mo-phong" className="scroll-mt-20">
-        <BudgetShowcase />
+        <MobileBudgetStage id="mobile-budget-stage" />
+        <div className="mobile-product-desktop-only">
+          <BudgetShowcase />
+        </div>
       </div>
       <ProductContentBody page={page} />
     </main>
@@ -255,7 +287,10 @@ function FeaturesProductPage({ page }: { page: ProductPageDef }) {
     <main className="min-h-svh bg-paper text-ink">
       <ProductHero page={page} screen="thu-chi" perspective="hero" />
       <div id="mo-phong" className="scroll-mt-20">
-        <FeatureEcosystemShowcase />
+        <MobileFeaturesStage id="mobile-features-stage" />
+        <div className="mobile-product-desktop-only">
+          <FeatureEcosystemShowcase />
+        </div>
       </div>
       <ProductContentBody page={page} />
     </main>
@@ -305,9 +340,9 @@ function BlogIndex() {
             <span aria-hidden />
             <span>Blog</span>
           </nav>
-          <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">Góc kiến thức</p>
-          <h1 className="mt-5 max-w-4xl font-display text-[clamp(3rem,8vw,7rem)] font-light leading-[1.02]">Blog quản lý chi tiêu</h1>
-          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-paper/70">Các bài viết ngắn, thực tế và có thể áp dụng ngay cho việc ghi chép thu chi, đọc số liệu và lập ngân sách.</p>
+          <p className="mt-6 md:mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">Góc kiến thức</p>
+          <h1 className="mt-4 max-w-4xl font-display text-[clamp(2.25rem,6.5vw,6.5rem)] font-light leading-[1.05]">Blog quản lý chi tiêu</h1>
+          <p className="mt-5 md:mt-8 max-w-2xl text-base md:text-lg leading-relaxed text-paper/70">Các bài viết ngắn, thực tế và có thể áp dụng ngay cho việc ghi chép thu chi, đọc số liệu và lập ngân sách.</p>
           <div className="blog-topic-pills" aria-label="Chủ đề bài viết">
             {topics.slice(1).map((t) => (
               <span key={t} className="blog-topic-pill">{t}</span>
@@ -400,9 +435,9 @@ function ArticlePage({ article }: { article: ArticleDef }) {
             <span aria-hidden />
             <span>{article.nav}</span>
           </nav>
-          <p className="mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{article.category}</p>
-          <h1 className="mt-5 font-display text-[clamp(2.15rem,6.2vw,5.5rem)] font-light leading-[1.08] [text-wrap:balance]">{article.title}</h1>
-          <p className="mt-8 max-w-3xl text-lg leading-relaxed text-paper/70">{article.intro}</p>
+          <p className="mt-6 md:mt-12 text-[11px] uppercase tracking-[0.28em] text-paper/55">{article.category}</p>
+          <h1 className="mt-4 max-w-4xl font-display text-[clamp(2.15rem,6.2vw,5.5rem)] font-light leading-[1.08] [text-wrap:balance]">{article.title}</h1>
+          <p className="mt-4 md:mt-8 max-w-3xl text-base md:text-lg leading-relaxed text-paper/70">{article.intro}</p>
           <ReadingMeta article={article} />
         </div>
       </header>
@@ -719,5 +754,3 @@ export default function ContentPage({ page }: { page: RouteDef }) {
   if (page.path === "/huy-dang-ky") return <UnsubscribePage page={page} />;
   return <ProductPage page={page} />;
 }
-
-

@@ -10,6 +10,7 @@ const LazyNotFoundPage = lazy(() => import("./pages").then((m) => ({ default: m.
 import { openPrelaunchSheet, storeUrl, submitWaitlist, track, useCountUp, useInView, useScrollProgress } from "./lib";
 import MobilePrelaunchSheet from "./components/MobilePrelaunchSheet";
 import MobileStickyCta from "./components/MobileStickyCta";
+import MobileHomeStage from "./components/MobileHomeStage";
 
 const d = (s: number): CSSProperties => ({ animationDelay: `${s}s` });
 const [F1, F2, F3] = FEATURES;
@@ -977,12 +978,13 @@ function FinalReveal() {
 }
 
 function Footer() {
+  const supportPaths = ["/cau-hoi-thuong-gap", "/gioi-thieu", "/chinh-sach-bao-mat", "/dieu-khoan-su-dung", "/huy-dang-ky"];
   return (
-    <footer className="bg-ink px-6 pb-28 pt-16 text-paper md:px-10 md:pb-14">
+    <footer className="site-footer bg-ink px-6 pb-28 pt-16 text-paper md:px-10 md:pb-14">
       <div className="mx-auto max-w-[1300px] border-t border-paper/15 pt-12">
-        <div className="grid gap-10 md:grid-cols-12 lg:gap-14">
+        <div className="footer-main grid gap-10 md:grid-cols-12 lg:gap-14">
           {/* Brand & Description */}
-          <div className="md:col-span-5 lg:col-span-4">
+          <div className="footer-brand md:col-span-5 lg:col-span-4">
             <Link href="/" className="inline-flex items-center gap-3 font-display text-2xl text-paper">
               <span className="size-4 rounded-full bg-vermilion" aria-hidden />
               {APP.name}
@@ -997,11 +999,11 @@ function Footer() {
           </div>
 
           {/* Links Column 1: Core Features */}
-          <div className="md:col-span-3 lg:col-span-4">
+          <div className="footer-link-group md:col-span-3 lg:col-span-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-paper/50">Tính năng cốt lõi</p>
             <ul className="mt-4 space-y-1 text-sm text-paper/75">
               {PRODUCT_PAGES.map((p) => (
-                <li key={p.path}>
+                <li key={p.path} className={supportPaths.includes(p.path) ? "footer-support-duplicate" : undefined}>
                   <Link
                     href={p.path}
                     className="flex min-h-11 items-center py-2 transition-colors hover:text-paper"
@@ -1014,7 +1016,7 @@ function Footer() {
           </div>
 
           {/* Links Column 2: Knowledge & Prelaunch */}
-          <div className="md:col-span-4 lg:col-span-4">
+          <div className="footer-link-group md:col-span-4 lg:col-span-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-paper/50">Kiến thức & Phát hành</p>
             <ul className="mt-4 space-y-1 text-sm text-paper/75">
               <li>
@@ -1054,13 +1056,13 @@ function Footer() {
         </div>
 
         {/* Disclaimer & Legal note */}
-        <div className="mt-12 border-t border-paper/10 pt-8 text-xs leading-relaxed text-paper/40 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+        <div className="footer-legal mt-12 border-t border-paper/10 pt-8 text-xs leading-relaxed text-paper/40 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="footer-legal-meta flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <p>© {new Date().getFullYear()} {APP.name}. Mọi quyền được bảo lưu.</p>
             <span className="hidden sm:inline text-paper/20">|</span>
             <p>Số liệu và hình ảnh biểu đồ mang tính minh họa giao diện sản phẩm.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-paper/60">
+          <div className="footer-legal-links flex flex-wrap items-center gap-4 text-xs text-paper/60">
             <Link href="/chinh-sach-bao-mat" className="transition-colors hover:text-paper">
               Chính sách bảo mật
             </Link>
@@ -1075,6 +1077,9 @@ function Footer() {
             <span aria-hidden className="text-paper/20">·</span>
             <Link href="/gioi-thieu" className="transition-colors hover:text-paper">
               Về Sổ Chi
+            </Link>
+            <Link href="/huy-dang-ky" className="footer-mobile-unsubscribe transition-colors hover:text-paper">
+              Hủy đăng ký nhận tin
             </Link>
           </div>
         </div>
@@ -1185,9 +1190,24 @@ export default function App({
   }, [page, path]);
 
   useEffect(() => {
-    if (!page && path === "/" && window.location.hash) {
-      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
-    }
+    if (!window.location.hash) return;
+
+    let attempts = 0;
+    let timer = 0;
+    const scrollToHash = () => {
+      const target = document.getElementById(window.location.hash.slice(1));
+      if (target) {
+        target.scrollIntoView({ block: "start" });
+        return;
+      }
+      if (attempts < 8) {
+        attempts += 1;
+        timer = window.setTimeout(scrollToHash, 60);
+      }
+    };
+
+    scrollToHash();
+    return () => window.clearTimeout(timer);
   }, [page, path]);
 
   return (
@@ -1207,6 +1227,7 @@ export default function App({
       ) : path === "/" ? (
         <main>
           <Hero />
+          <MobileHomeStage id="mobile-home-product" />
           <Interface />
           <FeatureShowcase />
           <DataInMotion />

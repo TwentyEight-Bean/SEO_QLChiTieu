@@ -213,7 +213,7 @@ export default function Phone({ src, screen, alt, w, className = "", children }:
 
   useEffect(() => {
     const key = ++nextLayerKey.current;
-    const cleanupMs = window.matchMedia("(max-width: 767px)").matches ? 420 : 720;
+    const cleanupMs = window.matchMedia("(max-width: 767px)").matches ? 560 : 720;
 
     setLayers((currentLayers) => {
       const active = currentLayers[currentLayers.length - 1];

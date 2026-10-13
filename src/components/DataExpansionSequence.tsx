@@ -268,7 +268,7 @@ export default function DataExpansionSequence() {
                     zIndex: 10,
                   }}
                 >
-                  <Phone screen="thong-ke" alt="Màn hình thống kê Sổ Chi gốc" w="clamp(230px, 24vw, 285px)" />
+                  <Phone src="/media/screenshots/thong-ke.png" screen="thong-ke" alt="Màn hình thống kê Sổ Chi gốc" w="clamp(230px, 24vw, 285px)" />
                 </div>
 
                 {/* Layer 2: Volumetric 3D Data Bars (Lift directly off the glass +80px to +120px) */}
