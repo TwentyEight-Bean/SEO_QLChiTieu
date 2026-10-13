@@ -186,13 +186,11 @@ export default function MobileFeaturesStage({ id = "mobile-features-stage" }: { 
   };
 
   const current = SCREENS[activeIdx];
-  const prevIdx = (activeIdx - 1 + SCREENS.length) % SCREENS.length;
-  const nextIdx = (activeIdx + 1) % SCREENS.length;
 
   return (
     <section
       id={id}
-      className="mobile-features-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      className="mobile-features-stage art-directed-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
       aria-labelledby="mobile-feat-stage-title"
     >
       {/* Ambient Radial Aura */}
@@ -258,9 +256,16 @@ export default function MobileFeaturesStage({ id = "mobile-features-stage" }: { 
 
         {/* 2.5D EXPLODED PRODUCT ECOSYSTEM STAGE */}
         <div
-          className="relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none min-h-[355px]"
+          className="art-composition features-composition relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none min-h-[355px]"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
+          onPointerCancel={() => { pointerStart.current = null; }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+              event.preventDefault(); setIsPlaying(false);
+              selectScreen(activeIdx + (event.key === "ArrowRight" ? 1 : -1), "button");
+            }
+          }}
           tabIndex={0}
           aria-label="Vuốt ngang để đổi màn hình tính năng"
         >
@@ -283,89 +288,22 @@ export default function MobileFeaturesStage({ id = "mobile-features-stage" }: { 
             </span>
           </div>
 
-          {/* Exploded 3-Phone Orbital Perspective Container */}
-          <div
-            className="mobile-stage-perspective-wrap relative flex items-center justify-center w-full"
-            style={{
-              perspective: "1200px",
-            }}
-          >
-            {/* 1. Behind / Left Orbital Phone */}
-            <div
-              onClick={() => selectScreen(prevIdx, "button")}
-              className="absolute left-0 cursor-pointer transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-40 hover:opacity-60"
-              style={{
-                width: "170px",
-                height: "270px",
-                transform: "translateX(-45px) rotateY(20deg) scale(0.82) translateZ(-60px)",
-                zIndex: 5,
-              }}
-              aria-label={`Chuyển sang ${SCREENS[prevIdx].name}`}
-            >
-              <div className="h-full w-full rounded-[1.8rem] border-[2px] border-paper/15 bg-lacquer overflow-hidden shadow-lg">
-                <div className="h-full w-full bg-[#f7f2e7] pointer-events-none opacity-85">
-                  <MiniPhoneScreen screenId={SCREENS[prevIdx].id} />
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Center / Primary Focus Phone */}
-            <div
-              className="relative transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]"
-              style={{
-                width: "228px",
-                height: "346px",
-                transform: "rotateY(-4deg) rotateX(2deg) scale(1.0) translateZ(25px)",
-                zIndex: 20,
-              }}
-            >
-              {/* Outer Phone Frame */}
-              <div className="relative h-full w-full overflow-hidden rounded-[2.3rem] border-[3px] border-[#2c241e] bg-lacquer shadow-[0_18px_45px_rgba(0,0,0,0.75),0_6px_16px_rgba(210,58,34,0.15)] ring-1 ring-paper/20">
-                {/* Specular glass reflection */}
-                <div
-                  className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-white/10 via-transparent to-white/5 opacity-60"
-                  aria-hidden
-                />
-
-                {/* Dynamic Island */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 h-3 w-14 rounded-full bg-black/95 flex items-center justify-end pr-1" aria-hidden>
-                  <span className="size-1 rounded-full bg-[#151c2c]/80" />
-                </div>
-
-                {/* Living Active Feature Screen */}
-                <div className="relative h-full w-full overflow-hidden bg-[#f7f2e7] text-ink">
-                  <MiniPhoneScreen screenId={current.id} />
-                </div>
-              </div>
-
-              {/* Ground Shadow */}
-              <div
-                className="pointer-events-none absolute -bottom-4 inset-x-4 h-5 rounded-full bg-black/60 blur-md -z-10"
-                aria-hidden
-              />
-            </div>
-
-            {/* 3. Foreground / Right Orbital Phone */}
-            <div
-              onClick={() => selectScreen(nextIdx, "button")}
-              className="absolute right-0 cursor-pointer transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-40 hover:opacity-60"
-              style={{
-                width: "170px",
-                height: "270px",
-                transform: "translateX(45px) rotateY(-20deg) scale(0.82) translateZ(-60px)",
-                zIndex: 5,
-              }}
-              aria-label={`Chuyển sang ${SCREENS[nextIdx].name}`}
-            >
-              <div className="h-full w-full rounded-[1.8rem] border-[2px] border-paper/15 bg-lacquer overflow-hidden shadow-lg">
-                <div className="h-full w-full bg-[#f7f2e7] pointer-events-none opacity-85">
-                  <MiniPhoneScreen screenId={SCREENS[nextIdx].id} />
-                </div>
-              </div>
-            </div>
+          {/* Stable screen layers exchange depth instead of replacing their UI. */}
+          <div className="ecosystem-mobile-rig">
+            <svg className="ecosystem-connections" viewBox="0 0 340 380" aria-hidden="true"><path d="M35 280C35 100 305 100 305 280M35 280Q170 390 305 280" /></svg>
+            {SCREENS.map((screen, index) => {
+              const slot = index === activeIdx ? "front" : index === (activeIdx + 1) % SCREENS.length ? "next" : "previous";
+              return (
+                <button key={screen.id} type="button" className="ecosystem-mobile-layer" data-slot={slot}
+                  aria-label={`Chọn ${screen.name}`} aria-pressed={index === activeIdx}
+                  onClick={() => { setIsPlaying(false); selectScreen(index, "button"); }}>
+                  <span className="ecosystem-layer-screen"><MiniPhoneScreen screenId={screen.id} /></span>
+                  <span className="ecosystem-layer-label">0{index + 1} / {screen.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-
         {/* Short Supporting Editorial Copy */}
         <div className="mt-3 w-full text-center px-1">
           <span className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-vermilion">

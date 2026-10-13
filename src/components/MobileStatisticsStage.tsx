@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type PointerEvent } from "react";
 import { track } from "../lib";
+import { StatisticsArt } from "./MobileProductArt";
 
 interface StatMode {
   id: string;
@@ -91,7 +92,8 @@ export default function MobileStatisticsStage({ id = "mobile-statistics-stage" }
   return (
     <section
       id={id}
-      className="mobile-statistics-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      className="mobile-statistics-stage art-directed-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      data-mode={activeIdx}
       aria-labelledby="mobile-stat-stage-title"
     >
       {/* Ambient background glow matching current data dimension */}
@@ -157,12 +159,20 @@ export default function MobileStatisticsStage({ id = "mobile-statistics-stage" }
 
         {/* 2.5D DATA EXPANSION STAGE */}
         <div
-          className="relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none"
+          className="art-composition statistics-composition relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
+          onPointerCancel={() => { pointerStart.current = null; }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+              event.preventDefault(); setIsPlaying(false);
+              selectMode(activeIdx + (event.key === "ArrowRight" ? 1 : -1), "button");
+            }
+          }}
           tabIndex={0}
           aria-label="Vuốt ngang để đổi góc nhìn dữ liệu"
         >
+          <StatisticsArt mode={activeIdx} />
           {/* Floating Contextual Pill outside phone */}
           <div
             key={`stat-chip-${activeIdx}`}

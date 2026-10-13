@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type PointerEvent } from "react";
 import { track } from "../lib";
+import { BudgetArt } from "./MobileProductArt";
 
 interface BudgetCategory {
   id: string;
@@ -39,7 +40,7 @@ const CATEGORIES: BudgetCategory[] = [
     total: "1,2 tr",
     remaining: "520.000 ₫",
     icon: "X",
-    statusBadge: "HẠN MỨC 02 / 03 · DƯ DỰNG",
+    statusBadge: "HẠN MỨC 02 / 03 · CÒN DƯ ĐỊA",
     statusTone: "gold",
     title: "Di chuyển vẫn còn nhiều dư địa",
     desc: "Còn 520.000 ₫ cho việc đi lại đến cuối tháng mà không lo vượt hạn mức.",
@@ -102,7 +103,8 @@ export default function MobileBudgetStage({ id = "mobile-budget-stage" }: { id?:
   return (
     <section
       id={id}
-      className="mobile-budget-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      className="mobile-budget-stage art-directed-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      data-warning={current.pct >= 90}
       aria-labelledby="mobile-budget-stage-title"
     >
       {/* Ambient background glow reflecting selected budget state */}
@@ -170,12 +172,20 @@ export default function MobileBudgetStage({ id = "mobile-budget-stage" }: { id?:
 
         {/* 2.5D BUDGET THRESHOLD STAGE */}
         <div
-          className="relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none"
+          className="art-composition budget-composition relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
+          onPointerCancel={() => { pointerStart.current = null; }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+              event.preventDefault(); setIsPlaying(false);
+              selectCat(activeIdx + (event.key === "ArrowRight" ? 1 : -1), "button");
+            }
+          }}
           tabIndex={0}
           aria-label="Vuốt ngang để đổi nhóm ngân sách"
         >
+          <BudgetArt pct={current.pct} category={current.name} remaining={current.remaining} />
           {/* Floating Contextual Chip outside phone */}
           <div
             key={`budget-chip-${activeIdx}`}

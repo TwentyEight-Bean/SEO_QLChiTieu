@@ -14,6 +14,7 @@ import MobileTransactionStage from "./components/MobileTransactionStage";
 import MobileStatisticsStage from "./components/MobileStatisticsStage";
 import MobileBudgetStage from "./components/MobileBudgetStage";
 import MobileFeaturesStage from "./components/MobileFeaturesStage";
+import MobileHeroArt, { ProductEditorialFigure, type ProductArtKind } from "./components/MobileProductArt";
 import { openPrelaunchSheet, track } from "./lib";
 import {
   type FaqItem,
@@ -87,11 +88,16 @@ function FaqSection({ items }: { items: FaqItem[] }) {
 
 /* ---------- Product Pages: Specialized 2.5D Visual Implementations ---------- */
 
+function productArtKind(page: ProductPageDef): ProductArtKind | undefined {
+  return ({ "/quan-ly-thu-chi": "transactions", "/thong-ke-tai-chinh": "statistics", "/lap-ngan-sach": "budget", "/tinh-nang": "features" } as Record<string, ProductArtKind>)[page.path];
+}
+
 function ProductHero({ page, screen, perspective }: { page: ProductPageDef; screen: PhoneScreen; perspective: "hero" | "perspective-left" | "perspective-right" }) {
+  const artKind = productArtKind(page);
   const feature = page.featureId ? featureById[page.featureId] : featureById[screen === "thong-ke" ? "thong-ke" : screen === "ngan-sach" ? "ngan-sach" : "thu-chi"];
 
   return (
-    <header className="product-page-hero relative isolate overflow-hidden bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
+    <header data-product-art={artKind} className="product-page-hero relative isolate overflow-hidden bg-ink px-6 pb-20 pt-32 text-paper md:px-10 md:pb-28">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_75%_35%,#2a211c_0%,#0c0a09_62%)]" />
       <div className="absolute right-[-18vw] top-20 -z-10 size-[min(90vw,680px)] rounded-full border border-paper/10" aria-hidden>
         <span className="absolute inset-[18%] rounded-full border border-vermilion/25" />
@@ -119,6 +125,7 @@ function ProductHero({ page, screen, perspective }: { page: ProductPageDef; scre
           </button>
         </div>
         <figure className="product-hero-phone justify-self-center">
+          {artKind && <MobileHeroArt kind={artKind} />}
           <DeviceMockup
             screen={screen}
             src={feature.shot}
@@ -134,6 +141,7 @@ function ProductHero({ page, screen, perspective }: { page: ProductPageDef; scre
 }
 
 function ProductContentBody({ page }: { page: ProductPageDef }) {
+  const artKind = productArtKind(page);
   const related = page.related.map((path) => ALL_PAGES.find((item) => item.path === path)).filter(Boolean) as RouteDef[];
   const tocItems = [
     { href: "#mo-phong", label: "00 Trực quan" },
@@ -143,7 +151,7 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
   ];
 
   return (
-    <section className="washi px-6 py-20 md:px-10 md:py-28">
+    <section data-product-editorial={artKind} className="washi px-6 py-20 md:px-10 md:py-28">
       <div className="mx-auto grid max-w-[1200px] gap-8 lg:gap-14 lg:grid-cols-[260px_minmax(0,780px)] lg:justify-between">
         {/* Mobile Collapsible TOC */}
         <details className="block lg:hidden rounded-2xl border border-ink/15 bg-paper/60 p-4 shadow-sm group">
@@ -185,6 +193,7 @@ function ProductContentBody({ page }: { page: ProductPageDef }) {
                   {section.list.map((item) => <li key={item}>{item}</li>)}
                 </ul>
               )}
+              {index === 0 && artKind && <ProductEditorialFigure kind={artKind} />}
             </section>
           ))}
 

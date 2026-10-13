@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type PointerEvent } from "react";
 import { track } from "../lib";
+import { TransactionArt } from "./MobileProductArt";
 
 interface StepData {
   num: string;
@@ -111,7 +112,8 @@ export default function MobileTransactionStage({ id = "mobile-transactions-stage
   return (
     <section
       id={id}
-      className="mobile-transaction-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      className="mobile-transaction-stage art-directed-stage md:hidden relative overflow-hidden bg-ink min-h-[85svh] flex flex-col justify-center pt-5 pb-6 px-4 text-paper scroll-mt-14"
+      data-step={step}
       aria-labelledby="mobile-tx-stage-title"
     >
       {/* Dynamic atmospheric radial background glow shifting with each step */}
@@ -179,12 +181,20 @@ export default function MobileTransactionStage({ id = "mobile-transactions-stage
 
         {/* 2.5D INTERACTIVE PRODUCT STAGE */}
         <div
-          className="relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none"
+          className="art-composition transaction-composition relative mt-3.5 w-full flex items-center justify-center touch-pan-y select-none"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
+          onPointerCancel={() => { pointerStart.current = null; }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+              event.preventDefault(); setIsPlaying(false);
+              selectStep(step + (event.key === "ArrowRight" ? 1 : -1), "button");
+            }
+          }}
           tabIndex={0}
           aria-label="Vuốt ngang để đổi bước minh họa"
         >
+          <TransactionArt step={step} />
           {/* Floating Contextual Pill outside phone (Secondary Visual Layer) */}
           <div
             key={`chip-${step}`}

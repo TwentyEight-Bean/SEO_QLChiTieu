@@ -1,5 +1,6 @@
 @import './fonts.css';
 @import 'tailwindcss';
+@import './mobile-product-art.css';
 
 @theme {
   --font-display: 'Noto Serif Display', 'Times New Roman', serif;
